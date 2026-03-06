@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, ClipboardList, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Sparkles, ClipboardList} from 'lucide-react';
 
 type EntryMode = 'smart' | 'manual';
 
