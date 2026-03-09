@@ -8,7 +8,8 @@ export function useBranch() {
   // 1. The Fetcher Function
   const getBranches = async (): Promise<IBranch[]> => {
     // Note: Use the full URL for local dev if not using a proxy
-    const response = await fetch(`http://localhost:8080/api/v1/branches`)
+    const BASE_URL = process.env.NEXT_PUBLIC_SERVICE_URL
+    const response = await fetch(`${BASE_URL}/api/v1/branches`)
 
     if (!response.ok) {
       // This triggers the 'isError' state in useQuery
