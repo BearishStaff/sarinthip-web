@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
     const baseApiUrl = process.env.NEXT_PUBLIC_SERVICE_URL
     const branchID = request.nextUrl.searchParams.get('branch_id')
-    const apiUrl = `${baseApiUrl}/api/v1/expense/${branchID}`
+    const apiUrl = `${baseApiUrl}/api/v1/expenses/${branchID}`
 
     const res = await fetch(apiUrl, {
       method: 'GET',
