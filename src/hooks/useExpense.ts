@@ -1,34 +1,57 @@
 "use client";
 
-import { IExpense, jsonToIExpenseList } from '@/src/types/expense';
-import { useQuery } from '@tanstack/react-query'
+import { supabase } from "@/src/lib/supabase";
+import { useQuery } from '@tanstack/react-query';
 
-export function useExpense(branchID: string) {
-  
-  const getExpense = async (branchID: string): Promise<IExpense[]> => {
-    const BASE_URL = process.env.NEXT_PUBLIC_SERVICE_URL
-    const response = await fetch(`${BASE_URL}/api/v1/expense/${branchID}`)
+export function useExpense(branchId: string) {
+  return useQuery({
+    queryKey: ['expenses', branchId],
+    queryFn: async () => {
+      // We fetch bills and join the categories into the expenses
+      const { data, error } = await supabase
+        .from('bills')
+        .select(`
+          id,
+          billing_date,
+          is_smart_input,
+          expenses (
+            id,
+            item_name,
+            qty,
+            unit,
+            price_per_unit,
+            total_amount,
+            entry_date,
+            categories (
+              name
+            )
+          )
+        `)
+        .eq('branch_id', branchId)
+        .order('billing_date', { ascending: false });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}: ${response.statusText}`)
-    }
+      if (error) throw error;
 
-    const data = await response.json()
-    
-    return jsonToIExpenseList(data)
-  }
+      // Transform the data to be easy to use in your UI
+      const formattedBills = data.map(bill => ({
+        ...bill,
+        // Map category name to a flatter structure
+        expenses: bill.expenses.map((exp: any) => ({
+          ...exp,
+          category_name: exp.categories?.name || 'Uncategorized'
+        })),
+        bill_total: bill.expenses.reduce((sum: number, e: any) => sum + Number(e.total_amount), 0)
+      }));
 
-  const queryList = useQuery({
-    queryKey: ['expense', branchID], 
-    queryFn: () => getExpense(branchID),   
-    retry: false, 
-  })
+      const grandTotal = formattedBills.reduce((sum, b) => sum + b.bill_total, 0);
 
-  return {
-    expenseData: queryList.data || [],
-    isLoading: queryList.isLoading,    
-    isError: queryList.isError,        
-    error: queryList.error,            
-    refetchExpense: queryList.refetch,
-  }
+      return {
+        bills: formattedBills,
+        grandTotal,
+        // Helpful if you want a simple list of all items across all bills
+        allExpenses: formattedBills.flatMap(b => b.expenses)
+      };
+    },
+    enabled: !!branchId,
+  });
 }

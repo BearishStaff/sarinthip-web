@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { LoaderIcon, Plus, Store } from "lucide-react"; // ไอคอนสำหรับ UI
 import Link from "next/link";
-import { useBranch } from "./hooks/useBranch";
+import { useBranch } from "@/src/hooks/useBranch";
 
 function handleAddBranch() {
   console.log("add branch");

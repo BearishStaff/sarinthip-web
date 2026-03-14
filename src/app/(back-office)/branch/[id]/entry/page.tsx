@@ -1,43 +1,69 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, ClipboardList} from 'lucide-react';
+import { useRouter, useParams } from 'next/navigation';
+import { ArrowLeft, Sparkles, ClipboardList, Loader2 } from 'lucide-react';
+import { createBillWithExpenses } from '@/src/actions/billActions'; // We'll create this action
+import { SmartInputView } from '@/src/components/SmartBillInput';
+import { ManualFormView } from '@/src/components/ManualFormView';
 
 type EntryMode = 'smart' | 'manual';
 
 export default function EntryPage() {
   const router = useRouter();
+  const params = useParams();
+  const branchId = params.id as string;
+
   const [mode, setMode] = useState<EntryMode>('smart');
   const [inputText, setInputText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSmartProcess = async () => {
+    if (!inputText.trim()) return alert("กรุณาใส่ข้อความก่อนประมวลผล");
+    
+    setIsProcessing(true);
+    try {
+      // Call our Server Action that uses the myTextParser internally
+      const result = await createBillWithExpenses(branchId, inputText);
+      
+      if (result.success) {
+        router.push(`/branch/${branchId}`);
+        router.refresh(); // Refresh dashboard data
+      }
+    } catch (error: any) {
+      alert("เกิดข้อผิดพลาด: " + error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4 font-sans">
       {/* Header */}
       <div className="w-full max-w-md flex items-center mb-6">
-        <button onClick={() => router.back()} className="p-2 mr-2">
+        <button onClick={() => router.back()} className="p-2 mr-2 hover:bg-gray-200 rounded-full transition-colors">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-bold">บันทึกรายจ่าย</h1>
+        <h1 className="text-xl font-bold text-gray-800">บันทึกรายจ่าย</h1>
       </div>
 
-      {/* Tab Switcher (Wireframe Step 3) */}
+      {/* Tab Switcher */}
       <div className="w-full max-w-md bg-gray-200 p-1 rounded-2xl flex mb-6">
         <button
           onClick={() => setMode('smart')}
-          className={`flex-1 flex items-center justify-center py-2 rounded-xl text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center py-2.5 rounded-xl text-sm font-bold transition-all ${
             mode === 'smart' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
           }`}
         >
-          <Sparkles className="w-4 h-4 mr-2" /> AI ก๊อปวาง
+          <Sparkles className={`w-4 h-4 mr-2 ${mode === 'smart' ? 'text-purple-500' : ''}`} /> AI ก๊อปวาง
         </button>
         <button
           onClick={() => setMode('manual')}
-          className={`flex-1 flex items-center justify-center py-2 rounded-xl text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center py-2.5 rounded-xl text-sm font-bold transition-all ${
             mode === 'manual' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'
           }`}
         >
-          <ClipboardList className="w-4 h-4 mr-2" /> กรอกเอง
+          <ClipboardList className={`w-4 h-4 mr-2 ${mode === 'manual' ? 'text-blue-500' : ''}`} /> กรอกเอง
         </button>
       </div>
 
@@ -47,83 +73,13 @@ export default function EntryPage() {
           <SmartInputView 
             text={inputText} 
             setText={setInputText} 
-            onProcess={() => router.push(`/branch/1/entry/preview`)} 
+            onProcess={handleSmartProcess}
+            loading={isProcessing}
           />
         ) : (
-          <ManualFormView />
+          <ManualFormView branchId={branchId} />
         )}
       </div>
-    </div>
-  );
-}
-
-/** * UI for Pasting AI Text 
- */
-function SmartInputView({ text, setText, onProcess }: any) {
-  return (
-    <div className="space-y-4 animate-in slide-in-from-right-2">
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-        <p className="text-sm text-gray-500 mb-3">วางข้อความที่ได้จาก AI ลงในช่องด้านล่าง</p>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="27/02/2569 | ลูกชิ้นเนื้อ 3 กก. ..."
-          className="min-h-[300px] border-none focus-visible:ring-0 bg-gray-50 rounded-xl p-4 text-base"
-        />
-      </div>
-      <button onClick={onProcess} className="w-full h-14 rounded-2xl bg-gray-900 text-lg font-bold">
-        ประมวลผลข้อมูล
-      </button>
-    </div>
-  );
-}
-
-/** * UI for Manual Entry (Step 4 in Wireframe) 
- */
-function ManualFormView() {
-  return (
-    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5 animate-in slide-in-from-left-2">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase">วันที่</label>
-          <input type="text" placeholder="27/02/2569" className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase">หมวดหมู่</label>
-          <select className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black">
-            <option>เนื้อสัตว์</option>
-            <option>ผัก</option>
-            <option>เส้น</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <label className="text-xs font-bold text-gray-400 uppercase">รายการ</label>
-        <input type="text" placeholder="เช่น ลูกชิ้นเนื้อ" className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase">หน่วย</label>
-          <input type="text" placeholder="กก. / ถุง" className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase">ราคา/หน่วย</label>
-          <input type="number" placeholder="220" className="w-full p-3 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-black" />
-        </div>
-      </div>
-
-      <div className="pt-4 border-t border-dashed">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500 font-medium">รวมทั้งหมด</span>
-          <span className="text-2xl font-black">฿ 0</span>
-        </div>
-      </div>
-
-      <button className="w-full h-14 rounded-2xl bg-gray-900 text-lg font-bold">
-        บันทึกรายการ
-      </button>
     </div>
   );
 }

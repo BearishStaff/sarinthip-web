@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addBranch } from "../app/actions/branchActions";
+import { addBranch } from "../actions/branchActions";
 
 export default function AddBranchForm() {
   const [message, setMessage] = useState("");

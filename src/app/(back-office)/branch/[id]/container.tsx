@@ -1,3 +1,5 @@
+"use client";
+
 import { useParams, useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -5,9 +7,11 @@ import {
   FileText, 
   ChevronRight, 
   TrendingUp,
-  Calendar
+  Calendar,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
+import { useExpense } from '@/src/hooks/useExpense';
 
 type Props = {
   branchName?: string
@@ -19,16 +23,11 @@ export default function BranchDashboardContainer({ branchName = "ศรีนท
   const router = useRouter();
   const branchId = params.id;
 
-  // const { expenseData } = useExpense(branchID);
+  // Fetch real data using the hook
+  const { data: expenseData, isLoading } = useExpense(branchID);
 
-  const expenseData = [
-    { item_name: "ลูกชิ้นเนื้อ", amount: 300, total_amount: 300, qty: 1, unit: "กิโลกรัม", created_at: "2026-03-11" },
-    { item_name: "ตับชิ้น", amount: 200, total_amount: 400, qty: 2, unit: "กิโลกรัม", created_at: "2026-03-11" },
-    { item_name: "สามชั้น", amount: 200, total_amount: 400, qty: 2, unit: "กิโลกรัม", created_at: "2026-03-11" },
-  ]
-
-  // ในอนาคตดึงชื่อสาขาและยอดรวมจาก Golang API
-  const monthlyTotal = 35420;
+  // Use the grandTotal from our hook, or fallback to 0 while loading
+  const monthlyTotal = expenseData?.grandTotal ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4 md:p-6 font-sans">
@@ -42,16 +41,16 @@ export default function BranchDashboardContainer({ branchName = "ศรีนท
           <ArrowLeft className="w-6 h-6 text-gray-700" />
         </button>
         <h1 className="text-xl font-bold text-gray-800">{branchName}</h1>
-        <div className="w-10"></div> {/* Spacer balance */}
+        <div className="w-10"></div> 
       </div>
 
-      {/* Monthly Summary Card (ตามภาพที่ 2 ใน Wireframe) */}
+      {/* Monthly Summary Card */}
       <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-8">
         <div className="flex justify-between items-start mb-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">รายจ่ายรวมเดือนนี้</p>
             <h2 className="text-3xl font-black text-gray-900">
-              ฿{monthlyTotal.toLocaleString()}
+              {isLoading ? "..." : `฿${monthlyTotal.toLocaleString()}`}
             </h2>
           </div>
           <div className="bg-green-100 p-2 rounded-xl">
@@ -65,10 +64,8 @@ export default function BranchDashboardContainer({ branchName = "ศรีนท
         </div>
       </div>
 
-      {/* Main Actions Grid (ปุ่ม บันทึก และ Export) */}
+      {/* Main Actions Grid */}
       <div className="w-full max-w-md grid grid-cols-1 gap-4">
-        
-        {/* ปุ่มบันทึก (ไปยังหน้า Smart Input/Form) */}
         <Link
           href={`/branch/${branchId}/entry`}
           className="flex items-center justify-between bg-gray-900 text-white p-5 rounded-2xl shadow-lg hover:bg-black transition-all active:scale-95"
@@ -85,7 +82,6 @@ export default function BranchDashboardContainer({ branchName = "ศรีนท
           <ChevronRight className="w-5 h-5 text-gray-500" />
         </Link>
 
-        {/* ปุ่ม Export (ไปยังหน้าออกรายงาน PDF) */}
         <Link
           href={`/branch/${branchId}/export`}
           className="flex items-center justify-between bg-white border border-gray-200 p-5 rounded-2xl hover:border-blue-500 transition-all active:scale-95 shadow-sm"
@@ -101,25 +97,49 @@ export default function BranchDashboardContainer({ branchName = "ศรีนท
           </div>
           <ChevronRight className="w-5 h-5 text-gray-300" />
         </Link>
-
       </div>
 
-      {/* Recent Activity (Optional - เพื่อความครบถ้วน) */}
+      {/* Recent Activity List */}
       <div className="w-full max-w-md mt-10">
-        <h3 className="text-sm font-bold text-gray-400 uppercase mb-4 px-2">รายการล่าสุด</h3>
+        <div className="flex justify-between items-center mb-4 px-2">
+          <h3 className="text-sm font-bold text-gray-400 uppercase">รายการล่าสุด</h3>
+          {isLoading && <span className="text-xs text-gray-400 animate-pulse">กำลังโหลด...</span>}
+        </div>
+        
         <div className="space-y-3">
-          {expenseData.map((item, index) => (
-            <div key={index} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-              <div className="flex flex-col">
-                <span className="font-semibold text-gray-800 text-sm">{item.item_name} {item.qty} {item.unit}</span>
-                <span className="text-xs text-gray-400">{item.created_at}</span>
+          {expenseData?.bills?.map((bill) => (
+            <div key={bill.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+              <div className="flex gap-3 items-center">
+                <div className={`p-2 rounded-lg ${bill.is_smart_input ? 'bg-purple-50' : 'bg-gray-50'}`}>
+                  {bill.is_smart_input ? <Zap className="w-4 h-4 text-purple-500" /> : <FileText className="w-4 h-4 text-gray-400" />}
+                </div>
+                <div className="flex flex-col">
+                  {/* แสดงรายการแรกในบิลเป็นตัวอย่าง */}
+                  <span className="font-semibold text-gray-800 text-sm">
+                    {bill.expenses[0]?.item_name || "ไม่มีรายการ"} 
+                    {bill.expenses.length > 1 && ` และอีก ${bill.expenses.length - 1} รายการ`}
+                  </span>
+                  <span className="text-[10px] text-gray-400">
+                    {new Date(bill.billing_date).toLocaleDateString('th-TH')}
+                  </span>
+                </div>
               </div>
-              <span className="font-bold text-gray-900">฿{item.total_amount.toLocaleString()}</span>
+              <div className="text-right">
+                <span className="font-bold text-gray-900 block">
+                  ฿{bill.bill_total.toLocaleString()}
+                </span>
+                <span className="text-[10px] text-gray-400 uppercase tracking-tighter">
+                  {bill.expenses.length} Items
+                </span>
+              </div>
             </div>
           ))}
+
+          {!isLoading && expenseData?.bills.length === 0 && (
+            <p className="text-center text-gray-400 text-sm py-10">ยังไม่มีข้อมูลรายจ่าย</p>
+          )}
         </div>
       </div>
-
     </div>
   );
 }
