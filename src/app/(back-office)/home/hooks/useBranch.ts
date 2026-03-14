@@ -1,30 +1,21 @@
 "use client";
 
 import { IBranch, jsonToIBranchList } from "@/src/types/branch"
+import { supabase } from "@/src/utils/supabase";
 import { useQuery } from '@tanstack/react-query'
 
 export function useBranch() {
-  
-  // 1. The Fetcher Function
   const getBranches = async (): Promise<IBranch[]> => {
-    // Note: Use the full URL for local dev if not using a proxy
-    const BASE_URL = process.env.NEXT_PUBLIC_SERVICE_URL
-    const response = await fetch(`${BASE_URL}/api/v1/branches`)
+    const { data, error } = await supabase
+      .from('branches')
+      .select('*')
+      .order('name', { ascending: true })
 
-    if (!response.ok) {
-      // This triggers the 'isError' state in useQuery
-      throw new Error(`Server responded with ${response.status}: ${response.statusText}`)
-    }
-
-    // Go Gin returns the array directly: [{}, {}]
-    const data = await response.json()
-    
-    // Use your utility to transform/validate the JSON into IBranch objects
-    return jsonToIBranchList(data)
+    if (error) throw new Error(error.message)
+    return data as IBranch[]
   }
 
-  // 2. The React Query Hook
-  const queryList = useQuery({
+ const queryList = useQuery({
     queryKey: ['branches'], // Unique key for caching
     queryFn: getBranches,    // The function that does the work
   })
