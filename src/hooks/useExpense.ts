@@ -55,3 +55,33 @@ export function useExpense(branchId: string) {
     enabled: !!branchId,
   });
 }
+
+export function useBillDetail(billId: string) {
+  return useQuery({
+    queryKey: ['bill-detail', billId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bills')
+        .select(`
+          *,
+          branches (name),
+          expenses (
+            id,
+            item_name,
+            qty,
+            unit,
+            price_per_unit,
+            total_amount,
+            category_id,
+            categories (name)
+          )
+        `)
+        .eq('id', billId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!billId,
+  });
+}
