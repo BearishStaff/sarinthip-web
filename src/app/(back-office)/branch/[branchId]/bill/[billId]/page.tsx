@@ -5,9 +5,9 @@ import { ArrowLeft, Calendar, Tag, Trash2, ReceiptText } from 'lucide-react';
 import { useBillDetail } from '@/src/hooks/useExpense';
 
 export default function BillDetailPage() {
-  const { bill_id } = useParams();
+  const { billId } = useParams();
   const router = useRouter();
-  const { data: bill, isLoading } = useBillDetail(bill_id as string);
+  const { data: bill, isLoading } = useBillDetail(billId as string);
 
   if (isLoading) return <div className="p-10 text-center">กำลังโหลด...</div>;
   if (!bill) return <div className="p-10 text-center">ไม่พบข้อมูลบิล</div>;

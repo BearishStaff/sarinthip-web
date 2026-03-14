@@ -15,19 +15,17 @@ import { useExpense } from "@/src/hooks/useExpense";
 
 type Props = {
   branchName?: string;
-  branchID: string;
+  branchId: string;
 };
 
 export default function BranchDashboardContainer({
   branchName = "ศรีนทิพย์ 1",
-  branchID,
+  branchId,
 }: Readonly<Props>) {
-  const params = useParams();
   const router = useRouter();
-  const branchId = params.id;
 
   // Fetch real data using the hook
-  const { data: expenseData, isLoading } = useExpense(branchID);
+  const { data: expenseData, isLoading } = useExpense(branchId);
 
   // Use the grandTotal from our hook, or fallback to 0 while loading
   const monthlyTotal = expenseData?.grandTotal ?? 0;

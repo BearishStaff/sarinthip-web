@@ -9,10 +9,12 @@ import { ManualFormView } from '@/src/components/ManualFormView';
 
 type EntryMode = 'smart' | 'manual';
 
-export default function EntryPage() {
+interface Props {
+  branchId: string
+}
+
+export default function InsertExpenseContainer({ branchId }: Readonly<Props>) {
   const router = useRouter();
-  const params = useParams();
-  const branchId = params.id as string;
 
   const [mode, setMode] = useState<EntryMode>('smart');
   const [inputText, setInputText] = useState('');
@@ -24,7 +26,7 @@ export default function EntryPage() {
     setIsProcessing(true);
     try {
       // Call our Server Action that uses the myTextParser internally
-      const result = await createBillWithExpenses(branchId, inputText);
+      const result = await createBillWithExpenses(branchId , inputText);
       
       if (result.success) {
         router.push(`/branch/${branchId}`);

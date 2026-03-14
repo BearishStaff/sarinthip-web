@@ -63,3 +63,51 @@ export async function createBillWithExpenses(branchId: string, rawText: string) 
     throw new Error(error.message || "Internal Server Error");
   }
 }
+
+export async function createManualExpense(formData: {
+  branchId: string;
+  itemName: string;
+  qty: number;
+  unit: string;
+  pricePerUnit: number;
+  billingDate: string;
+  categoryId?: number | null;
+}) {
+  try {
+    // 1. Create the Bill (Manual entries are still wrapped in a Bill)
+    const { data: bill, error: billError } = await supabase
+      .from('bills')
+      .insert([
+        { 
+          branch_id: formData.branchId, 
+          is_smart_input: false, // Flag as manual
+          billing_date: formData.billingDate 
+        }
+      ])
+      .select()
+      .single();
+
+    if (billError) throw new Error(billError.message);
+
+    // 2. Create the Expense
+    const { error: expError } = await supabase
+      .from('expenses')
+      .insert([{
+        bill_id: bill.id,
+        item_name: formData.itemName,
+        qty: formData.qty,
+        unit: formData.unit,
+        price_per_unit: formData.pricePerUnit,
+        total_amount: formData.qty * formData.pricePerUnit,
+        entry_date: formData.billingDate,
+        category_id: formData.categoryId || null
+      }]);
+
+    if (expError) throw new Error(expError.message);
+
+    revalidatePath(`/branch/${formData.branchId}`);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
