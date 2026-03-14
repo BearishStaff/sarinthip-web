@@ -1,7 +1,7 @@
 "use client";
 
-import { IBranch, jsonToIBranchList } from "@/src/types/branch"
-import { supabase } from "@/src/utils/supabase";
+import { supabase } from "@/src/lib/supabase";
+import { IBranch } from "@/src/types/branch"
 import { useQuery } from '@tanstack/react-query'
 
 export function useBranch() {

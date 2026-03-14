@@ -1,6 +1,3 @@
-'use client';
-
-import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -11,7 +8,6 @@ import {
   Calendar
 } from 'lucide-react';
 import Link from 'next/link';
-import { useExpense } from './hooks/useExpense';
 
 type Props = {
   branchName?: string
@@ -23,7 +19,13 @@ export default function BranchDashboardContainer({ branchName = "ศรีนท
   const router = useRouter();
   const branchId = params.id;
 
-  const { expenseData } = useExpense(branchID);
+  // const { expenseData } = useExpense(branchID);
+
+  const expenseData = [
+    { item_name: "ลูกชิ้นเนื้อ", amount: 300, total_amount: 300, qty: 1, unit: "กิโลกรัม", created_at: "2026-03-11" },
+    { item_name: "ตับชิ้น", amount: 200, total_amount: 400, qty: 2, unit: "กิโลกรัม", created_at: "2026-03-11" },
+    { item_name: "สามชั้น", amount: 200, total_amount: 400, qty: 2, unit: "กิโลกรัม", created_at: "2026-03-11" },
+  ]
 
   // ในอนาคตดึงชื่อสาขาและยอดรวมจาก Golang API
   const monthlyTotal = 35420;
