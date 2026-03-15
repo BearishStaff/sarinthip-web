@@ -4,53 +4,32 @@ export interface ParsedExpense {
   unit: string;
   price_per_unit: number;
   total_amount: number;
+  extracted_date?: string; // e.g., "27/02/2569"
 }
 
 export function myTextParser(rawText: string): ParsedExpense[] {
   const lines = rawText.split('\n');
   const expenses: ParsedExpense[] = [];
-
-  // Updated Regex:
-  // ^(.*?)\s+          -> Group 1: Item Name
-  // ([\d,.]+)\s+       -> Group 2: Quantity
-  // ([^\d\s]+)\s+      -> Group 3: Unit (any non-digit, non-space chars)
-  // ([\d,.]+)$         -> Group 4: Total Price
-  const complexRegex = /^(.*?)\s+([\d,.]+)\s+([^\d\s]+)\s+([\d,.]+)$/;
   
-  // Fallback Regex (Name + Total Price only)
-  const simpleRegex = /^(.*?)\s+([\d,.]+)$/;
+  // Regex for the middle segment: Name Qty Unit UnitPrice = Total
+  const detailRegex = /^(.*?)\s+([\d,.]+)\s+([^\d\s]+)\s+.*ละ\s+([\d,.]+)\s*=\s*([\d,.]+)$/;
 
   for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-
-    const complexMatch = trimmed.match(complexRegex);
+    const parts = line.split('|').map(p => p.trim());
     
-    if (complexMatch) {
-      const name = complexMatch[1].trim();
-      const qty = parseFloat(complexMatch[2].replace(/,/g, ''));
-      const unit = complexMatch[3].trim();
-      const total = parseFloat(complexMatch[4].replace(/,/g, ''));
-      
-      expenses.push({
-        item_name: name,
-        qty: qty,
-        unit: unit,
-        price_per_unit: total / qty, // Calculate unit price
-        total_amount: total
-      });
-    } else {
-      // Try simple match if complex fails
-      const simpleMatch = trimmed.match(simpleRegex);
-      if (simpleMatch) {
-        const name = simpleMatch[1].trim();
-        const total = parseFloat(simpleMatch[2].replace(/,/g, ''));
+    if (parts.length >= 2) {
+      const datePart = parts[0]; // "27/02/2569"
+      const detailSegment = parts[1];
+      const match = detailSegment.match(detailRegex);
+
+      if (match) {
         expenses.push({
-          item_name: name,
-          qty: 1,
-          unit: "รายการ", // Fallback for your NOT NULL constraint
-          price_per_unit: total,
-          total_amount: total
+          extracted_date: datePart,
+          item_name: match[1].trim(),
+          qty: parseFloat(match[2].replace(/,/g, '')),
+          unit: match[3].trim(),
+          price_per_unit: parseFloat(match[4].replace(/,/g, '')),
+          total_amount: parseFloat(match[5].replace(/,/g, ''))
         });
       }
     }

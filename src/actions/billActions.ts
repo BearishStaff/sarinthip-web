@@ -3,64 +3,48 @@
 import { supabase } from "@/src/lib/supabase";
 import { myTextParser } from "@/src/lib/parser";
 import { revalidatePath } from "next/cache";
+import { convertThaiDateToISO } from "../lib/utils";
 
 export async function createBillWithExpenses(branchId: string, rawText: string) {
   try {
-    // 1. Parse the text into an array of objects
     const parsedItems = myTextParser(rawText);
+    if (parsedItems.length === 0) throw new Error("ไม่พบรายการ");
 
-    if (parsedItems.length === 0) {
-      throw new Error("ไม่พบรายการที่สามารถประมวลผลได้ กรุณาตรวจสอบรูปแบบข้อความ");
-    }
+    // Use the date from the first item as the Bill's date
+    const firstDate = parsedItems[0].extracted_date;
+    const dbDate = firstDate ? convertThaiDateToISO(firstDate) : new Date().toISOString();
 
-    // 2. Create the Bill record first
-    // We set is_smart_input to true so we know this came from the parser
+    // 1. Create Bill
     const { data: bill, error: billError } = await supabase
       .from('bills')
-      .insert([
-        {
-          branch_id: branchId,
-          is_smart_input: true,
-          billing_date: new Date().toISOString()
-        }
-      ])
-      .select()
-      .single();
+      .insert([{ 
+        branch_id: branchId, 
+        is_smart_input: true, 
+        billing_date: dbDate // 👈 Save date here
+      }])
+      .select().single();
 
-    if (billError) throw new Error("ไม่สามารถสร้างบิลได้: " + billError.message);
+    if (billError) throw billError;
 
-    // 3. Prepare the expenses with the new Bill ID
-    // Note: We use 1 as default category_id or you can logic-match it later
+    // 2. Map Expenses
     const expensesToInsert = parsedItems.map(item => ({
       bill_id: bill.id,
-      branch_id: branchId,
       item_name: item.item_name,
       qty: item.qty,
-      unit: item.unit || "รายการ", // Default string if parser fails
+      unit: item.unit,
       price_per_unit: item.price_per_unit,
       total_amount: item.total_amount,
-      entry_date: new Date().toISOString(),
-      category_id: null // 👈 Change this to null
+      entry_date: item.extracted_date ? convertThaiDateToISO(item.extracted_date) : dbDate, // 👈 And here
+      category_id: null
     }));
 
-    const { error: expError } = await supabase
-      .from('expenses')
-      .insert(expensesToInsert);
+    const { error: expError } = await supabase.from('expenses').insert(expensesToInsert);
+    if (expError) throw expError;
 
-    if (expError) {
-      // Cleanup: if expenses fail, delete the empty bill (Rollback)
-      await supabase.from('bills').delete().eq('id', bill.id);
-      throw new Error("ไม่สามารถบันทึกรายการรายจ่ายได้: " + expError.message);
-    }
-
-    // 5. Clear the cache so the dashboard shows new data
     revalidatePath(`/branch/${branchId}`);
-
-    return { success: true, count: parsedItems.length };
-
+    return { success: true };
   } catch (error: any) {
-    console.error("Server Action Error:", error);
-    throw new Error(error.message || "Internal Server Error");
+    return { success: false, error: error.message };
   }
 }
 
