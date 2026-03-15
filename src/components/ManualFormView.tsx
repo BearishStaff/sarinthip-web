@@ -12,7 +12,7 @@ export function ManualFormView({ branchId }: { branchId: string }) {
   );
   const [itemName, setItemName] = React.useState("");
   const [qty, setQty] = React.useState(0);
-  const [unit, setUnit] = React.useState("รายการ");
+  const [unit, setUnit] = React.useState("กก.");
   const [price, setPrice] = React.useState(0);
 
   const handleSubmit = async () => {
