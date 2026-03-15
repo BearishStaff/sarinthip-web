@@ -119,3 +119,26 @@ export async function deleteBill(billId: string, branchId: string) {
     return { success: false, error: error.message };
   }
 }
+
+export async function updateExpense(id: number, data: {
+  item_name?: string;
+  qty?: number;
+  unit?: string;
+  price_per_unit?: number;
+  total_amount?: number;
+  category_id?: number | null;
+}) {
+  try {
+    const { error } = await supabase
+      .from('expenses')
+      .update(data)
+      .eq('id', id);
+
+    if (error) throw error;
+
+    revalidatePath('/branch/[id]');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
