@@ -4,6 +4,7 @@ import { supabase } from "@/src/lib/supabase";
 import { myTextParser } from "@/src/lib/parser";
 import { revalidatePath } from "next/cache";
 import { convertThaiDateToISO } from "../lib/utils";
+import { suggestCategory } from "../lib/categorizer";
 
 export async function createBillWithExpenses(branchId: string, rawText: string) {
   try {
@@ -13,6 +14,8 @@ export async function createBillWithExpenses(branchId: string, rawText: string) 
     // Use the date from the first item as the Bill's date
     const firstDate = parsedItems[0].extracted_date;
     const dbDate = firstDate ? convertThaiDateToISO(firstDate) : new Date().toISOString();
+
+    const { data: allCategories } = await supabase.from('categories').select('*');
 
     // 1. Create Bill
     const { data: bill, error: billError } = await supabase
@@ -35,7 +38,7 @@ export async function createBillWithExpenses(branchId: string, rawText: string) 
       price_per_unit: item.price_per_unit,
       total_amount: item.total_amount,
       entry_date: item.extracted_date ? convertThaiDateToISO(item.extracted_date) : dbDate, // 👈 And here
-      category_id: null
+      category_id: suggestCategory(item.item_name, allCategories || [])
     }));
 
     const { error: expError } = await supabase.from('expenses').insert(expensesToInsert);

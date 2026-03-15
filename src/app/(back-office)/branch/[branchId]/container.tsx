@@ -9,6 +9,9 @@ import {
   TrendingUp,
   Calendar,
   Zap,
+  Settings2,
+  Plus,
+  Tag,
 } from "lucide-react";
 import Link from "next/link";
 import { useExpense } from "@/src/hooks/useExpense";
@@ -29,9 +32,9 @@ export default function BranchDashboardContainer({
 
   // Use the grandTotal from our hook, or fallback to 0 while loading
   const monthlyTotal = expenseData?.grandTotal ?? 0;
-  
+
   function onSelectBill(billId: string) {
-    router.push(`/branch/${branchId}/bill/${billId}`)
+    router.push(`/branch/${branchId}/bill/${billId}`);
   }
 
   return (
@@ -109,6 +112,20 @@ export default function BranchDashboardContainer({
           </div>
           <ChevronRight className="w-5 h-5 text-gray-300" />
         </Link>
+
+        <Link href="/categories">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl text-white shadow-lg shadow-blue-100 flex justify-between items-center group cursor-pointer">
+            <div>
+              <h3 className="text-lg font-black">สอนคำหลัก AI</h3>
+              <p className="text-blue-100 text-xs">
+                ตั้งค่าหมวดหมู่และ Keyword อัตโนมัติ
+              </p>
+            </div>
+            <div className="bg-white/20 p-3 rounded-2xl group-hover:bg-white/30 transition-colors">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+          </div>
+        </Link>
       </div>
 
       {/* Recent Activity List */}
@@ -179,5 +196,29 @@ export default function BranchDashboardContainer({
         </div>
       </div>
     </div>
+  );
+}
+
+export function CategoryEntryButton() {
+  return (
+    <Link href="/categories" className="block w-full">
+      <div className="bg-white p-5 rounded-3xl border-2 border-gray-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex justify-between items-center active:translate-y-1 active:shadow-none transition-all">
+        <div className="flex items-center gap-4">
+          <div className="bg-gray-900 p-3 rounded-2xl">
+            <Tag className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex flex-col">
+            {/* Using text-gray-900 for maximum darkness */}
+            <span className="text-lg font-black text-gray-900 leading-tight">
+              จัดการหมวดหมู่
+            </span>
+            <span className="text-sm font-bold text-gray-600">
+              สอนคำหลักให้ AI ช่วยคัดแยก
+            </span>
+          </div>
+        </div>
+        <ChevronRight className="w-6 h-6 text-gray-900" />
+      </div>
+    </Link>
   );
 }
