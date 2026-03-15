@@ -1,8 +1,9 @@
 "use client";
 
 import { useMonthlyReport } from "@/src/hooks/useMonthlyReport";
-import { FileText, Download, Share2 } from "lucide-react";
+import { FileText, Download, Share2, ArrowLeft } from "lucide-react";
 import { generateExpensePDF } from "@/src/lib/exportUtils";
+import { useRouter } from "next/navigation";
 
 type Props = {
   branchId: string;
@@ -10,15 +11,16 @@ type Props = {
 
 export default function ExportReportContainer({ branchId }: Props) {
   const { data: report } = useMonthlyReport(branchId as string, 3, 2026);
-  
-  const grandTotal = report?.reduce((sum, item) => sum + (item.total as number), 0) || 0;
+  const router = useRouter();
+  const grandTotal =
+    report?.reduce((sum, item) => sum + (item.total as number), 0) || 0;
 
   const handleDownload = () => {
     generateExpensePDF(
       "Srinathip 1", // You can pass the real branch name here
-      report || [], 
-      grandTotal, 
-      "March 2026"
+      report || [],
+      grandTotal,
+      "March 2026",
     );
   };
 
@@ -43,9 +45,15 @@ export default function ExportReportContainer({ branchId }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen text-black bg-gray-50 p-4 md:p-8">
       <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
+          <button
+            onClick={() => router.back()}
+            className="p-2 mr-2 hover:bg-gray-200 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
           <FileText className="w-6 h-6 text-blue-600" />
           สรุปรายงานประจำเดือน
         </h1>
@@ -78,10 +86,16 @@ export default function ExportReportContainer({ branchId }: Props) {
           </div>
 
           <div className="pt-4 space-y-3">
-            <button onClick={handleDownload} className="w-full h-14 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
+            <button
+              onClick={handleDownload}
+              className="w-full h-14 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+            >
               <Download className="w-5 h-5" /> ดาวน์โหลด PDF
             </button>
-            <button onClick={handleShare} className="w-full h-14 bg-white border border-gray-200 text-gray-700 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
+            <button
+              onClick={handleShare}
+              className="w-full h-14 bg-white border border-gray-200 text-gray-700 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+            >
               <Share2 className="w-5 h-5" /> แชร์รายงาน
             </button>
           </div>
