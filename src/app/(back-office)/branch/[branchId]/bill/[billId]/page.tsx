@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Calendar, Tag, Trash2, ReceiptText } from 'lucide-react';
 import { useBillDetail } from '@/src/hooks/useExpense';
+import { deleteBill } from '@/src/actions/billActions';
 
 export default function BillDetailPage() {
   const { billId } = useParams();
@@ -13,6 +14,19 @@ export default function BillDetailPage() {
   if (!bill) return <div className="p-10 text-center">ไม่พบข้อมูลบิล</div>;
 
   const totalAmount = bill.expenses.reduce((sum: number, exp: any) => sum + exp.total_amount, 0);
+
+  const handleDelete = async () => {
+  if (!globalThis.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?")) return;
+
+  const result = await deleteBill(bill.id, bill.branch_id);
+  
+  if (result.success) {
+    router.push(`/branch/${bill.branch_id}`);
+    router.refresh();
+  } else {
+    alert("ไม่สามารถลบได้: " + result.error);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -30,7 +44,7 @@ export default function BillDetailPage() {
               <div className="bg-gray-900 p-3 rounded-2xl">
                 <ReceiptText className="w-6 h-6 text-white" />
               </div>
-              <button className="text-red-500 p-2 hover:bg-red-50 rounded-xl transition-colors">
+              <button onClick={handleDelete} className="text-red-500 p-2 hover:bg-red-50 rounded-xl transition-colors">
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>

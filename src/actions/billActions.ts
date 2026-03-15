@@ -111,3 +111,24 @@ export async function createManualExpense(formData: {
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * 3. DELETE BILL: Removes a bill and all associated expenses (via Cascade)
+ */
+export async function deleteBill(billId: string, branchId: string) {
+  try {
+    const { error } = await supabase
+      .from('bills')
+      .delete()
+      .eq('id', billId);
+
+    if (error) throw error;
+
+    // Refresh the dashboard and the specific branch view
+    revalidatePath(`/branch/${branchId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete Error:", error);
+    return { success: false, error: error.message };
+  }
+}
