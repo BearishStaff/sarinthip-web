@@ -1,59 +1,25 @@
 "use client";
 
 import { useMonthlyReport } from "@/src/hooks/useMonthlyReport";
-import jsPDF from "jspdf";
 import { FileText, Download, Share2 } from "lucide-react";
-import autoTable from "jspdf-autotable";
+import { generateExpensePDF } from "@/src/lib/exportUtils";
 
 type Props = {
   branchId: string;
 };
 
 export default function ExportReportContainer({ branchId }: Props) {
-  const { data: report, isLoading } = useMonthlyReport(
-    branchId as string,
-    3,
-    2026,
-  ); // Hardcoded March for testing
+  const { data: report } = useMonthlyReport(branchId as string, 3, 2026);
+  
+  const grandTotal = report?.reduce((sum, item) => sum + (item.total as number), 0) || 0;
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-
-    // 1. Add Title
-    doc.setFontSize(20);
-    doc.text(`Monthly Expense Report`, 14, 22);
-
-    // 2. Add Meta Info
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Branch: ${branchId}`, 14, 30);
-    doc.text(`Period: March 2026`, 14, 35);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 40);
-
-    // 3. Prepare Table Data
-    const tableRows =
-      report?.map((item: any) => [
-        item.name,
-        `THB ${item.total.toLocaleString()}`,
-      ]) || [];
-
-    // 4. Generate Table
-    autoTable(doc, {
-      startY: 50,
-      head: [["Category", "Total Amount"]],
-      body: tableRows,
-      foot: [["Grand Total", `THB ${grandTotal.toLocaleString()}`]],
-      theme: "striped",
-      headStyles: { fillColor: [31, 41, 55] }, // Dark gray like your UI
-      footStyles: {
-        fillColor: [243, 244, 246],
-        textColor: [0, 0, 0],
-        fontStyle: "bold",
-      },
-    });
-
-    // 5. Save the file
-    doc.save(`Report_${branchId}_March_2026.pdf`);
+  const handleDownload = () => {
+    generateExpensePDF(
+      "Srinathip 1", // You can pass the real branch name here
+      report || [], 
+      grandTotal, 
+      "March 2026"
+    );
   };
 
   const handleShare = async () => {
@@ -75,9 +41,6 @@ export default function ExportReportContainer({ branchId }: Props) {
       console.error(err);
     }
   };
-
-  const grandTotal =
-    report?.reduce((sum, item) => sum + (item.total as number), 0) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -115,7 +78,7 @@ export default function ExportReportContainer({ branchId }: Props) {
           </div>
 
           <div className="pt-4 space-y-3">
-            <button onClick={handleDownloadPDF} className="w-full h-14 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
+            <button onClick={handleDownload} className="w-full h-14 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
               <Download className="w-5 h-5" /> ดาวน์โหลด PDF
             </button>
             <button onClick={handleShare} className="w-full h-14 bg-white border border-gray-200 text-gray-700 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">

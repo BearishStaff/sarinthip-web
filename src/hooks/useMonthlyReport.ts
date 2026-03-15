@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
+import { ReportItem } from "../lib/exportUtils";
 
 export function useMonthlyReport(branchId: string, month: number, year: number) {
-  return useQuery({
+  return useQuery<ReportItem[]>({
     queryKey: ['report', branchId, month, year],
     queryFn: async () => {
       const startDate = new Date(year, month - 1, 1).toISOString();
@@ -30,7 +31,7 @@ export function useMonthlyReport(branchId: string, month: number, year: number) 
         return acc;
       }, {});
 
-      return Object.entries(report).map(([name, total]) => ({ name, total }));
+      return Object.entries(report).map(([name, total]) => ({ name, total: total as number}));
     }
   });
 }
