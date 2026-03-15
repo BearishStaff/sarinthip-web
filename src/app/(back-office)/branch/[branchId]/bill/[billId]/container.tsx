@@ -11,13 +11,13 @@ import {
   Edit2,
   X,
 } from "lucide-react";
-import { useBillDetail } from "@/src/hooks/useExpense";
+import {  deleteExpense, useBillDetail } from "@/src/hooks/useExpense";
 import { deleteBill, updateExpense } from "@/src/actions/billActions";
 import { useState } from "react";
 import { useCategories } from "@/src/hooks/useCategory";
 
 export default function BillDetailContainer() {
-  const { billId } = useParams();
+  const { branchId, billId } = useParams();
   const router = useRouter();
   const { data: allCategories = [] } = useCategories();
   const { data: bill, isLoading } = useBillDetail(billId as string);
@@ -297,6 +297,30 @@ export default function BillDetailContainer() {
                       >
                         อัปเดตข้อมูล
                       </button>
+                      <div className="pt-4 border-t-2 border-dashed border-gray-200 mt-6">
+                        <button
+                          onClick={async () => {
+                            if (
+                              confirm(
+                                `ยืนยันการลบ "${editingExpense.item_name}"?`,
+                              )
+                            ) {
+                              const result = await deleteExpense(
+                                editingExpense.id
+                              );
+                              if (result.success) {
+                                setEditingExpense(null);
+                                router.refresh();
+                              } else {
+                                alert("ไม่สามารถลบได้: " + result.error);
+                              }
+                            }
+                          }}
+                          className="w-full h-14 bg-white border-4 border-red-600 text-red-600 rounded-2xl font-black text-lg hover:bg-red-50 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Trash2 className="w-5 h-5" /> ลบรายการนี้
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

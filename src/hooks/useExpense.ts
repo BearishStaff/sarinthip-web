@@ -85,3 +85,17 @@ export function useBillDetail(billId: string) {
     enabled: !!billId,
   });
 }
+
+export async function deleteExpense(id: number) { // Add branchId here
+  try {
+    const { error } = await supabase
+      .from('expenses')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
