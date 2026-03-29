@@ -8,47 +8,73 @@ export interface ReportItem {
 }
 
 export const generateExpensePDF = (
-  branchName: string, 
-  reportData: ReportItem[], 
+  branchName: string,
+  reportData: ReportItem[],
   grandTotal: number,
   monthYear: string
 ) => {
+  const branchData = [
+    { id: 1, name: 'สาขากลาง', city: 'กรุงเทพ' },
+    { id: 2, name: 'สาขาเหนือ', city: 'เชียงใหม่' },
+  ];
+
+  const branchColumns = [
+    { header: 'รหัสสาขา', dataKey: 'id' },
+    { header: 'ชื่อสาขา', dataKey: 'name' },
+    { header: 'จังหวัด', dataKey: 'city' },
+  ];
+  exportToPDF({
+    title: 'รายงานสาขาทั้งหมด',
+    columns: branchColumns,
+    data: branchData
+  });
+};
+
+interface ExportConfig {
+  title: string;
+  columns: { header: string; dataKey: string }[];
+  data: any[];
+}
+
+export const exportToPDF = ({ title, columns, data }: ExportConfig) => {
   const doc = new jsPDF();
 
+  // 1. ลงทะเบียนฟอนต์
   addSarabunFont(doc);
+  
+  // ตั้งค่า Font หลักให้กับตัวเอกสาร
+  doc.setFont("Sarabun", "normal");
 
-  // Header Section
-  doc.setFontSize(22);
-  doc.setTextColor(33, 37, 41);
-  doc.text("Expense Summary", 14, 20);
+  // 2. แสดงหัวข้อ (ใส่ฟอนต์ให้ชัวร์ก่อนสั่งเขียน text)
+  doc.text(title, 14, 15);
 
-  // Metadata
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Branch: ${branchName}`, 14, 30);
-  doc.text(`Period: ${monthYear}`, 14, 35);
-  doc.text(`Total: THB ${grandTotal.toLocaleString()}`, 14, 40);
-
-  // Table Body logic
-  const body = reportData.map(item => [
-    item.name, 
-    `THB ${item.total.toLocaleString()}`
-  ]);
-
+  // 3. Render ตาราง
   autoTable(doc, {
-    startY: 50,
-    head: [['Category', 'Amount']],
-    body: body,
-    foot: [['GRAND TOTAL', `THB ${grandTotal.toLocaleString()}`]],
-    theme: 'grid',
+    startY: 20,
+    head: [columns.map((col) => col.header)],
+    body: data.map((row) => columns.map((col) => row[col.dataKey])),
+    
+    // ตั้งค่า Font สำหรับทุกส่วนของตาราง
     styles: {
-      font: "Sarabun", // สำคัญมาก: ต้องตรงกับชื่อที่ตั้งไว้ใน addFont
-      fontStyle: "normal",
+      font: "Sarabun",
+      fontStyle: "normal", // ป้องกันการไปเรียก 'bold' ที่เราอาจไม่ได้ลงทะเบียนไว้
+      fontSize: 12,
     },
-    headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
-    footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
+    
+    // เน้นย้ำตรงนี้: ต้องระบุ font ใน headStyles ด้วย
+    headStyles: { 
+      font: "Sarabun", 
+      fontStyle: "normal", // ถ้าไม่มีไฟล์ Sarabun-Bold ให้ใช้ normal แทน
+      fillColor: [0, 0, 0], // ลองใส่สีเข้มดูว่าตัวหนังสือสีขาว (Default) ขึ้นไหม
+      textColor: [255, 255, 255]
+    },
+    
+    // ถ้ามี footer ก็ต้องใส่ด้วย
+    footStyles: {
+      font: "Sarabun",
+      fontStyle: "normal",
+    }
   });
 
-  // Save the PDF
-  doc.save(`Report_${branchName}_${monthYear.replace(' ', '_')}.pdf`);
+  doc.save(`${title}.pdf`);
 };
