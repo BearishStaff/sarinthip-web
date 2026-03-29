@@ -14,14 +14,16 @@ export const generateExpensePDF = (
   monthYear: string
 ) => {
   const branchData = [
-    { id: 1, name: 'สาขากลาง', city: 'กรุงเทพ' },
-    { id: 2, name: 'สาขาเหนือ', city: 'เชียงใหม่' },
+    { date: "26/03/2026", item: 'เนื้อสับ', amount: '150' },
+    { date: "26/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
+    { date: "27/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
+    { date: "28/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
   ];
 
   const branchColumns = [
-    { header: 'รหัสสาขา', dataKey: 'id' },
-    { header: 'ชื่อสาขา', dataKey: 'name' },
-    { header: 'จังหวัด', dataKey: 'city' },
+    { header: 'วันที่', dataKey: 'date' },
+    { header: 'รายการ', dataKey: 'item' },
+    { header: 'ราคา (บาท)', dataKey: 'amount' },
   ];
   exportToPDF({
     title: 'รายงานสาขาทั้งหมด',
