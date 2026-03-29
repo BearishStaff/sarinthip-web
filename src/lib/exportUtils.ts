@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { addSarabunFont } from '../font/Sarabun-Regular-normal.js';
 
 export interface ReportItem {
   name: string;
@@ -13,6 +14,8 @@ export const generateExpensePDF = (
   monthYear: string
 ) => {
   const doc = new jsPDF();
+
+  addSarabunFont(doc);
 
   // Header Section
   doc.setFontSize(22);
@@ -38,7 +41,10 @@ export const generateExpensePDF = (
     body: body,
     foot: [['GRAND TOTAL', `THB ${grandTotal.toLocaleString()}`]],
     theme: 'grid',
-    styles: { font: 'helvetica', fontSize: 10 },
+    styles: {
+      font: "Sarabun", // สำคัญมาก: ต้องตรงกับชื่อที่ตั้งไว้ใน addFont
+      fontStyle: "normal",
+    },
     headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
     footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
   });
