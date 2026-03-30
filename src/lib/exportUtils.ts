@@ -3,35 +3,10 @@ import autoTable from 'jspdf-autotable';
 import { addSarabunFont } from '../font/Sarabun-Regular-normal.js';
 
 export interface ReportItem {
+  categoryId: string;
   name: string;
   total: number;
 }
-
-export const generateExpensePDF = (
-  branchName: string,
-  reportData: ReportItem[],
-  grandTotal: number,
-  monthYear: string
-) => {
-  const branchData = [
-    { date: "26/03/2026", item: 'เนื้อสับ', amount: '150' },
-    { date: "26/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
-    { date: "27/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
-    { date: "28/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
-  ];
-
-  const branchColumns = [
-    { header: 'วันที่', dataKey: 'date' },
-    { header: 'รายการ', dataKey: 'item' },
-    { header: 'ราคา (บาท)', dataKey: 'amount' },
-  ];
-  exportToPDF({
-    title: 'ใบรับรองแทนใบเสร็จ',
-    description: `สาขา ${branchName} - รายงานค่าใช้จ่ายประจำเดือน ${monthYear} - ยอดรวม ${grandTotal} บาท`,
-    columns: branchColumns,
-    data: branchData
-  });
-};
 
 interface ExportConfig {
   title: string;

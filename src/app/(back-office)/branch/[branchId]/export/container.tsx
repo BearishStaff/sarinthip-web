@@ -1,8 +1,8 @@
 "use client";
 
 import { useMonthlyReport } from "@/src/hooks/useMonthlyReport";
+import { thaiMonths } from "@/src/lib/utils";
 import { FileText, Download, Share2, ArrowLeft } from "lucide-react";
-import { generateExpensePDF } from "@/src/lib/exportUtils";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -10,24 +10,23 @@ type Props = {
 };
 
 export default function ExportReportContainer({ branchId }: Props) {
-  const { data: report } = useMonthlyReport(branchId as string, 3, 2026);
+  const { reportData, generateExpensePDF, grandTotal, month, year } =
+    useMonthlyReport(branchId);
+
   const router = useRouter();
-  const grandTotal =
-    report?.reduce((sum, item) => sum + (item.total as number), 0) || 0;
 
   const handleDownload = () => {
-    generateExpensePDF(
-      "Srinathip 1", // You can pass the real branch name here
-      report || [],
-      grandTotal,
-      "March 2026",
-    );
+    generateExpensePDF(branchId);
   };
+
+  const handleDownloadByCategory = (categoryId: string) => {
+    generateExpensePDF(categoryId);
+  }
 
   const handleShare = async () => {
     const shareData = {
       title: `รายงานสรุปยอดจ่าย - ${branchId}`,
-      text: `สรุปยอดรายจ่ายเดือนมีนาคม: ฿${grandTotal.toLocaleString()}`,
+      text: `สรุปยอดรายจ่ายเดือน ${thaiMonths[month]}: ฿${grandTotal.toLocaleString()}`,
       url: globalThis.location.href,
     };
 
@@ -61,7 +60,7 @@ export default function ExportReportContainer({ branchId }: Props) {
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6">
           <div className="text-center pb-6 border-b border-dashed">
             <p className="text-sm font-bold text-gray-400 uppercase">
-              ยอดใช้จ่ายรวม (มีนาคม 2569)
+              ยอดใช้จ่ายรวม {thaiMonths[month - 1]} {year}
             </p>
             <h2 className="text-4xl font-black text-gray-900 mt-1">
               ฿{grandTotal.toLocaleString()}
@@ -72,7 +71,7 @@ export default function ExportReportContainer({ branchId }: Props) {
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
               แยกตามหมวดหมู่
             </p>
-            {report?.map((item: any) => (
+            {reportData?.map((item: any) => (
               <div
                 key={item.name}
                 className="flex justify-between items-center"
@@ -81,6 +80,12 @@ export default function ExportReportContainer({ branchId }: Props) {
                 <span className="font-bold text-gray-900">
                   ฿{item.total.toLocaleString()}
                 </span>
+                <button
+                  onClick={() => handleDownloadByCategory(item.categoryId)}
+                  className="h-14 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
               </div>
             ))}
           </div>

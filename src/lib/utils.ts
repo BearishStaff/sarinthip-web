@@ -19,3 +19,8 @@ export function convertThaiDateToISO(thaiDateStr: string): string {
   // Basic validation: if date is invalid, fallback to now
   return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
 }
+
+export const thaiMonths = [
+    "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+    "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+];
