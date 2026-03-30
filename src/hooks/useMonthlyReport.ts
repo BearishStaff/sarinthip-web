@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 import { exportToPDF, ReportItem } from "../lib/exportUtils";
 import { useState } from "react";
+import { thaiMonths } from "../lib/utils";
 
 export function useMonthlyReport(branchId: string) {
 
@@ -101,34 +102,40 @@ export function useMonthlyReport(branchId: string) {
     summaryByCategoryReportData?.reduce((sum, item) => sum + (item.total as number), 0) || 0;
 
 
-  const generateExpensePDF = (
+  const generateExpensePDF = async (
     categoryId: string
   ) => {
 
-    console.log("getExpenseData: ", getExpenseByCategory(categoryId))
+    const res = getExpenseByCategory(categoryId);
+
+    const reportData = await res.then((res) => res.expenses.map((exp) => ({
+      date: new Date(exp.entry_date).toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }),
+      item: exp.item_name,
+      qty: `${exp.qty} ${exp.unit}`,
+      price_per_unit: exp.price_per_unit.toLocaleString(),
+      total_amount: exp.total_amount.toLocaleString(),
+    })));
 
     const branchName = "Srinathip 1"; // You can pass the real branch name here
-
-    const branchData = [
-      { date: "26/03/2026", item: 'เนื้อสับ', amount: '150' },
-      { date: "26/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
-      { date: "27/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
-      { date: "28/03/2026", item: 'ลูกชิ้นเนื้อ', amount: '200' },
-      { date: "", item: 'รวม', amount: '750' },
-    ];
 
     const branchColumns = [
       { header: 'วันที่', dataKey: 'date' },
       { header: 'รายการ', dataKey: 'item' },
-      { header: 'ราคา (บาท)', dataKey: 'amount' },
+      { header: 'จำนวน', dataKey: 'qty' },
+      { header: 'ราคาต่อหน่วย(บาท)', dataKey: 'price_per_unit' },
+      { header: 'ราคารวม(บาท)', dataKey: 'total_amount' },
     ];
 
-    // exportToPDF({
-    //   title: 'ใบรับรองแทนใบเสร็จ',
-    //   description: `สาขา ${branchName} - รายงานค่าใช้จ่ายประจำเดือน ${monthYear} - ยอดรวม ${grandTotal} บาท`,
-    //   columns: branchColumns,
-    //   data: branchData
-    // });
+    exportToPDF({
+      title: 'ใบรับรองแทนใบเสร็จ',
+      description: `สาขา ${branchName} - รายงานค่าใช้จ่ายประจำเดือน ${thaiMonths[month - 1]} - ยอดรวม ${grandTotal} บาท`,
+      columns: branchColumns,
+      data: reportData,
+    });
   };
 
   return {
