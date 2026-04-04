@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   PlusCircle,
@@ -9,12 +10,13 @@ import {
   TrendingUp,
   Calendar,
   Zap,
-  Settings2,
   Plus,
   Tag,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useExpense } from "@/src/hooks/useExpense";
+import { thaiMonths } from "@/src/lib/utils";
 
 type Props = {
   branchName?: string;
@@ -27,8 +29,19 @@ export default function BranchDashboardContainer({
 }: Readonly<Props>) {
   const router = useRouter();
 
-  // Fetch real data using the hook
-  const { data: expenseData, isLoading } = useExpense(branchId);
+  const [month, setMonth] = useState(() => new Date().getMonth() + 1);
+  const [year, setYear] = useState(() => new Date().getFullYear());
+
+  const yearOptions = useMemo(() => {
+    const y = new Date().getFullYear();
+    return Array.from({ length: 12 }, (_, i) => y - 10 + i);
+  }, []);
+
+  const { data: expenseData, isLoading, isError } = useExpense(
+    branchId,
+    month,
+    year,
+  );
 
   // Use the grandTotal from our hook, or fallback to 0 while loading
   const monthlyTotal = expenseData?.grandTotal ?? 0;
@@ -53,13 +66,62 @@ export default function BranchDashboardContainer({
 
       {/* Monthly Summary Card */}
       <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-4 text-black">
+          <div className="space-y-2">
+            <label
+              htmlFor="branch-dashboard-month"
+              className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+            >
+              เดือน
+            </label>
+            <select
+              id="branch-dashboard-month"
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              disabled={isLoading}
+              className="w-full p-3 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black text-sm font-bold appearance-none disabled:opacity-60"
+            >
+              {thaiMonths.map((name, i) => (
+                <option key={name} value={i + 1}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="branch-dashboard-year"
+              className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+            >
+              ปี (ค.ศ.)
+            </label>
+            <select
+              id="branch-dashboard-year"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              disabled={isLoading}
+              className="w-full p-3 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black text-sm font-bold appearance-none disabled:opacity-60"
+            >
+              {yearOptions.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div className="flex justify-between items-start mb-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
               รายจ่ายรวมเดือนนี้
             </p>
-            <h2 className="text-3xl font-black text-gray-900">
-              {isLoading ? "..." : `฿${monthlyTotal.toLocaleString()}`}
+            <h2 className="text-3xl font-black text-gray-900 min-h-9 flex items-center">
+              {isLoading ? (
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+              ) : (
+                `฿${monthlyTotal.toLocaleString()}`
+              )}
             </h2>
           </div>
           <div className="bg-green-100 p-2 rounded-xl">
@@ -67,9 +129,17 @@ export default function BranchDashboardContainer({
           </div>
         </div>
 
+        {isError && (
+          <p className="text-sm font-bold text-red-600 mb-3">
+            โหลดข้อมูลไม่สำเร็จ ลองใหม่อีกครั้ง
+          </p>
+        )}
+
         <div className="flex items-center text-sm text-gray-500 bg-gray-50 p-3 rounded-2xl">
-          <Calendar className="w-4 h-4 mr-2 text-blue-500" />
-          <span>ประจำเดือน มีนาคม 2569</span>
+          <Calendar className="w-4 h-4 mr-2 text-blue-500 shrink-0" />
+          <span>
+            ประจำเดือน {thaiMonths[month - 1]} พ.ศ. {year + 543}
+          </span>
         </div>
       </div>
 
@@ -142,6 +212,11 @@ export default function BranchDashboardContainer({
         </div>
 
         <div className="space-y-3">
+          {!isLoading && expenseData?.bills?.length === 0 && (
+              <p className="text-center text-sm text-gray-500 py-8 px-4 bg-white rounded-2xl border border-gray-100">
+                ไม่มีบิลในเดือนที่เลือก
+              </p>
+            )}
           {expenseData?.bills?.map((bill) => (
             <div
               key={bill.id}

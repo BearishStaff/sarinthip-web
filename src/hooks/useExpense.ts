@@ -3,10 +3,13 @@
 import { supabase } from "@/src/lib/supabase";
 import { useQuery } from '@tanstack/react-query';
 
-export function useExpense(branchId: string) {
+export function useExpense(branchId: string, month: number, year: number) {
   return useQuery({
-    queryKey: ['expenses', branchId],
+    queryKey: ['expenses', branchId, month, year],
     queryFn: async () => {
+      const startDate = new Date(year, month - 1, 1).toISOString();
+      const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+
       // We fetch bills and join the categories into the expenses
       const { data, error } = await supabase
         .from('bills')
@@ -28,6 +31,8 @@ export function useExpense(branchId: string) {
           )
         `)
         .eq('branch_id', branchId)
+        .gte('billing_date', startDate)
+        .lte('billing_date', endDate)
         .order('billing_date', { ascending: false });
 
       if (error) throw error;
