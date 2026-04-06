@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { LoaderIcon, Plus, Store } from "lucide-react"; // ไอคอนสำหรับ UI
 import Link from "next/link";
 import { useBranch } from "@/src/hooks/useBranch";
+import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 
 function handleAddBranch() {
   console.log("add branch");
@@ -14,13 +15,13 @@ export default function HomeContainer() {
   const { branchesData, isLoading } = useBranch();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-6 font-sans">
+    <div className={`min-h-screen ${appColorClasses.pageBg} flex flex-col items-center p-6 font-sans`}>
       {/* Welcome Header */}
       <header className="w-full max-w-md mt-8 mb-10 text-center">
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+        <h1 className={`text-3xl font-extrabold ${appColorClasses.textPrimary} tracking-tight`}>
           Welcome!
         </h1>
-        <p className="text-gray-500 mt-2">กรุณาเลือกสาขาเพื่อจัดการข้อมูล</p>
+        <p className={`${appColorClasses.textSecondary} mt-2`}>กรุณาเลือกสาขาเพื่อจัดการข้อมูล</p>
       </header>
 
       {isLoading ? (
@@ -33,12 +34,12 @@ export default function HomeContainer() {
               <Link
                 key={branch.id}
                 href={`/branch/${branch.id}`} // ไปที่หน้า Dashboard ของสาขานั้นๆ
-                className="group relative bg-white border border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-center transition-all hover:border-blue-500 hover:shadow-md active:scale-95"
+                className={`group relative ${appColorClasses.cardBg} border ${appColorClasses.borderSoft} rounded-2xl p-6 flex flex-col items-center justify-center transition-all ${intentColorClasses.brand.borderStrong.replace("border-", "hover:border-")} hover:shadow-md active:scale-95`}
               >
-                <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-blue-100">
-                  <Store className="text-blue-600 w-7 h-7" />
+                <div className={`w-14 h-14 ${intentColorClasses.brand.bg} rounded-full flex items-center justify-center mb-3 group-hover:bg-brand-100`}>
+                  <Store className={`${intentColorClasses.brand.text} w-7 h-7`} />
                 </div>
-                <span className="font-semibold text-gray-800 text-center">
+                <span className={`font-semibold ${appColorClasses.textPrimary} text-center`}>
                   {branch.name}
                 </span>
               </Link>
@@ -47,12 +48,12 @@ export default function HomeContainer() {
             {/* Add Branch Button */}
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center transition-all hover:border-blue-400 hover:bg-blue-50 active:scale-95"
+              className={`bg-card border-2 border-dashed border-border-soft rounded-2xl p-6 flex flex-col items-center justify-center transition-all hover:border-brand-400 hover:bg-brand-50 active:scale-95`}
             >
-              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mb-3">
-                <Plus className="text-gray-400 w-7 h-7" />
+              <div className={`w-14 h-14 bg-surface rounded-full flex items-center justify-center mb-3`}>
+                <Plus className={`${appColorClasses.textMuted} w-7 h-7`} />
               </div>
-              <span className="font-medium text-gray-500">เพิ่มสาขา</span>
+              <span className={`font-medium ${appColorClasses.textSecondary}`}>เพิ่มสาขา</span>
             </button>
           </div>
 
@@ -60,35 +61,35 @@ export default function HomeContainer() {
           {showAddModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-in fade-in">
               <div className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl space-y-6">
-                <h2 className="text-xl font-bold text-center text-gray-800 tracking-tight">
+                <h2 className={`text-xl font-bold text-center ${appColorClasses.textPrimary} tracking-tight`}>
                   เพิ่มสาขาใหม่
                 </h2>
                 <form onSubmit={handleAddBranch} className="space-y-6">
                   <div className="space-y-2 text-center">
                     {/* ไอคอน + ในวงกลมตาม Wireframe */}
-                    <div className="mx-auto w-20 h-20 border-2 border-gray-200 rounded-full flex items-center justify-center bg-gray-50 mb-4">
-                      <Plus className="text-gray-300 w-10 h-10" />
+                    <div className={`mx-auto w-20 h-20 border-2 ${appColorClasses.borderSoft} rounded-full flex items-center justify-center bg-surface mb-4`}>
+                      <Plus className={`${appColorClasses.textMuted} w-10 h-10`} />
                     </div>
                     <input
                       type="text"
                       placeholder="ระบุชื่อสาขา"
                       value={""}
                       onChange={() => {}}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg"
+                      className="w-full px-4 py-3 rounded-xl border border-border-soft focus:outline-none focus:ring-2 focus:ring-brand-500 text-center text-lg"
                       autoFocus
                     />
                   </div>
                   <div className="flex flex-col gap-3">
                     <button
                       type="submit"
-                      className="w-full bg-gray-900 text-white py-3 rounded-xl font-semibold hover:bg-black transition-colors"
+                      className={`w-full bg-text-primary text-white py-3 rounded-xl font-semibold hover:bg-foreground transition-colors`}
                     >
                       ยืนยัน
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowAddModal(false)}
-                      className="w-full bg-white text-gray-500 py-3 rounded-xl font-medium border border-gray-100 hover:bg-gray-50 transition-colors"
+                      className={`w-full bg-card ${appColorClasses.textSecondary} py-3 rounded-xl font-medium border ${appColorClasses.borderSubtle} hover:bg-surface transition-colors`}
                     >
                       ยกเลิก
                     </button>
@@ -101,7 +102,7 @@ export default function HomeContainer() {
       )}
 
       {/* Footer Info (Optional) */}
-      <footer className="mt-auto py-8 text-gray-400 text-sm italic">
+      <footer className={`mt-auto py-8 ${appColorClasses.textMuted} text-sm italic`}>
         Backend Managed by Supabase
       </footer>
     </div>
