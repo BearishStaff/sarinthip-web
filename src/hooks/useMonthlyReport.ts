@@ -106,9 +106,10 @@ export function useMonthlyReport(branchId: string) {
     categoryId: string
   ) => {
 
-    const res = getExpenseByCategory(categoryId);
+    const res = await getExpenseByCategory(categoryId);
+    const categoryName = res.expenses[0]?.category_name || 'อื่นๆ / ยังไม่ระบุ';
 
-    const data = await res.then((res) => res.expenses.map((exp) => ({
+    const data = res.expenses.map((exp) => ({
       date: new Date(exp.entry_date).toLocaleDateString('th-TH', {
         day: '2-digit',
         month: '2-digit',
@@ -118,9 +119,9 @@ export function useMonthlyReport(branchId: string) {
       qty: `${exp.qty} ${exp.unit}`,
       price_per_unit: exp.price_per_unit.toLocaleString(),
       total_amount: exp.total_amount.toLocaleString(),
-    })));
+    }));
 
-    const totalAmount = data.reduce((sum, item) => sum + Number(item.total_amount.replace(/,/g, '')), 0);
+    const totalAmount = data.reduce((sum, item) => sum + Number(item.total_amount.replaceAll(',', '')), 0);
     const report = [...data, { item: 'รวม', total_amount: totalAmount.toLocaleString() }];
 
     const branchName = "Srinathip 1"; // You can pass the real branch name here
@@ -136,10 +137,11 @@ export function useMonthlyReport(branchId: string) {
     const monthName = thaiMonths[month - 1];
 
     exportToPDF({
-      title: `ใบรับรองแทนใบเสร็จ-${monthName}-${year}`,
+      title: `ใบรับรองแทนใบเสร็จ-${categoryName}-${monthName}-${year}`,
       description: `สาขา ${branchName} - รายงานค่าใช้จ่ายประจำเดือน ${monthName} - ยอดรวม ${totalAmount} บาท`,
       columns: branchColumns,
       data: report,
+      keepGroupTogetherBy: 'date',
     });
   };
 
