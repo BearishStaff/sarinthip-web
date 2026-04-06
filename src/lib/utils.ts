@@ -1,11 +1,11 @@
 export function convertThaiDateToISO(thaiDateStr: string): string {
   // Handles "27/02/2569" or "27/02/2026"
   const parts = thaiDateStr.split('/');
-  if (parts.length !== 3) return new Date().toISOString();
+  if (parts.length !== 3) return new Date().toISOString().split("T")[0];
 
-  const day = parseInt(parts[0]);
-  const month = parseInt(parts[1]) - 1; // JS Months are 0-11
-  let year = parseInt(parts[2]);
+  const day = Number.parseInt(parts[0], 10);
+  const month = Number.parseInt(parts[1], 10) - 1; // JS months are 0-11
+  let year = Number.parseInt(parts[2], 10);
 
   // Smart Detection:
   // If year is 2569, it's BE -> convert to 2026
@@ -15,9 +15,20 @@ export function convertThaiDateToISO(thaiDateStr: string): string {
   }
 
   const date = new Date(year, month, day);
-  
-  // Basic validation: if date is invalid, fallback to now
-  return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+
+  // Basic validation: if date is invalid, fallback to today's date (YYYY-MM-DD)
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month ||
+    date.getDate() !== day
+  ) {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  const monthStr = String(date.getMonth() + 1).padStart(2, "0");
+  const dayStr = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${monthStr}-${dayStr}`;
 }
 
 export const thaiMonths = [

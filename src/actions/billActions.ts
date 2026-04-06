@@ -13,7 +13,7 @@ export async function createBillWithExpenses(branchId: string, rawText: string) 
 
     // Use the date from the first item as the Bill's date
     const firstDate = parsedItems[0].extracted_date;
-    const dbDate = firstDate ? convertThaiDateToISO(firstDate) : new Date().toISOString();
+    const dbDate = firstDate ? convertThaiDateToISO(firstDate) : new Date().toISOString().split("T")[0];
 
     const { data: allCategories } = await supabase.from('categories').select('*');
 
