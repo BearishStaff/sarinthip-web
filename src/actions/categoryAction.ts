@@ -1,6 +1,9 @@
 "use server";
 
-import { supabase } from "@/src/lib/supabase";
+import {
+  removeCategory,
+  upsertCategoryByInput,
+} from "@/src/repository/categoryRepository";
 import { revalidatePath } from "next/cache";
 
 export async function upsertCategory(data: {
@@ -9,13 +12,7 @@ export async function upsertCategory(data: {
   keywords: string[];
 }) {
   try {
-    const { error } = await supabase
-      .from('categories')
-      .upsert({
-        id: data.id, // If ID exists, it updates; if not, it inserts
-        name: data.name,
-        keywords: data.keywords
-      });
+    const { error } = await upsertCategoryByInput(data);
 
     if (error) throw error;
 
@@ -28,10 +25,7 @@ export async function upsertCategory(data: {
 
 export async function deleteCategory(id: number) {
   try {
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', id);
+    const { error } = await removeCategory(id);
 
     if (error) throw error;
 

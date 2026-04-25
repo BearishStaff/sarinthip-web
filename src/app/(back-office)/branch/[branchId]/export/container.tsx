@@ -39,9 +39,21 @@ export default function ExportReportContainer({
     generateExpensePDF(branchId);
   };
 
+  function isLineApp() {
+    return /Line/i.test(navigator.userAgent);
+  }
+  
+
   const handleDownloadByCategory = (categoryId: string) => {
     if (actionsDisabled) return;
-    generateExpensePDF(categoryId);
+    if (isLineApp()) {
+      // Show instruction to open in external browser
+      alert('Please tap the "..." menu and select "Open in Browser" to download the PDF');
+      // Or redirect to open in external browser
+      window.location.href = 'intent://your-app-url#Intent;scheme=https;end';
+    } else {
+      generateExpensePDF(categoryId);
+    }
   };
 
   const handleShare = async () => {

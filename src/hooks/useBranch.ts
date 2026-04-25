@@ -1,15 +1,12 @@
 "use client";
 
-import { supabase } from "@/src/lib/supabase";
 import { IBranch } from "@/src/types/branch"
 import { useQuery } from '@tanstack/react-query'
+import { listBranches } from "@/src/repository/branchRepository";
 
 export function useBranch() {
   const getBranches = async (): Promise<IBranch[]> => {
-    const { data, error } = await supabase
-      .from('branches')
-      .select('*')
-      .order('name', { ascending: true })
+    const { data, error } = await listBranches();
 
     if (error) throw new Error(error.message)
     return data as IBranch[]

@@ -1,10 +1,15 @@
 "use server";
 
-import { supabase } from "@/src/lib/supabase";
 import { myTextParser } from "@/src/lib/parser";
 import { revalidatePath } from "next/cache";
 import { convertThaiDateToISO } from "../lib/utils";
 import { suggestCategory } from "../lib/categorizer";
+import { createBill, removeBill } from "../repository/billRepository";
+import {
+  createExpenses,
+  updateExpenseById,
+} from "../repository/expenseRepository";
+import { listAllCategories } from "../repository/categoryRepository";
 
 export async function createBillWithExpenses(branchId: string, rawText: string) {
   try {
@@ -15,17 +20,14 @@ export async function createBillWithExpenses(branchId: string, rawText: string) 
     const firstDate = parsedItems[0].extracted_date;
     const dbDate = firstDate ? convertThaiDateToISO(firstDate) : new Date().toISOString().split("T")[0];
 
-    const { data: allCategories } = await supabase.from('categories').select('*');
+    const { data: allCategories } = await listAllCategories();
 
     // 1. Create Bill
-    const { data: bill, error: billError } = await supabase
-      .from('bills')
-      .insert([{ 
-        branch_id: branchId, 
-        is_smart_input: true, 
-        billing_date: dbDate // 👈 Save date here
-      }])
-      .select().single();
+    const { data: bill, error: billError } = await createBill({
+      branch_id: branchId,
+      is_smart_input: true,
+      billing_date: dbDate,
+    });
 
     if (billError) throw billError;
 
@@ -41,7 +43,7 @@ export async function createBillWithExpenses(branchId: string, rawText: string) 
       category_id: suggestCategory(item.item_name, allCategories || [])
     }));
 
-    const { error: expError } = await supabase.from('expenses').insert(expensesToInsert);
+    const { error: expError } = await createExpenses(expensesToInsert);
     if (expError) throw expError;
 
     revalidatePath(`/branch/${branchId}`);
@@ -62,24 +64,16 @@ export async function createManualExpense(formData: {
 }) {
   try {
     // 1. Create the Bill (Manual entries are still wrapped in a Bill)
-    const { data: bill, error: billError } = await supabase
-      .from('bills')
-      .insert([
-        { 
-          branch_id: formData.branchId, 
-          is_smart_input: false, // Flag as manual
-          billing_date: formData.billingDate 
-        }
-      ])
-      .select()
-      .single();
+    const { data: bill, error: billError } = await createBill({
+      branch_id: formData.branchId,
+      is_smart_input: false,
+      billing_date: formData.billingDate,
+    });
 
     if (billError) throw new Error(billError.message);
 
     // 2. Create the Expense
-    const { error: expError } = await supabase
-      .from('expenses')
-      .insert([{
+    const { error: expError } = await createExpenses([{
         bill_id: bill.id,
         item_name: formData.itemName,
         qty: formData.qty,
@@ -104,10 +98,7 @@ export async function createManualExpense(formData: {
  */
 export async function deleteBill(billId: string, branchId: string) {
   try {
-    const { error } = await supabase
-      .from('bills')
-      .delete()
-      .eq('id', billId);
+    const { error } = await removeBill(billId);
 
     if (error) throw error;
 
@@ -129,10 +120,7 @@ export async function updateExpense(id: number, data: {
   category_id?: number | null;
 }) {
   try {
-    const { error } = await supabase
-      .from('expenses')
-      .update(data)
-      .eq('id', id);
+    const { error } = await updateExpenseById(id, data);
 
     if (error) throw error;
 

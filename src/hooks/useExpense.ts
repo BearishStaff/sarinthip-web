@@ -1,7 +1,11 @@
 "use client";
 
-import { supabase } from "@/src/lib/supabase";
 import { useQuery } from '@tanstack/react-query';
+import {
+  getBillDetail,
+  getBillsWithExpensesByBranchAndDateRange,
+} from "@/src/repository/billRepository";
+import { removeExpense } from "@/src/repository/expenseRepository";
 
 export function useExpense(branchId: string, month: number, year: number) {
   return useQuery({
@@ -11,29 +15,11 @@ export function useExpense(branchId: string, month: number, year: number) {
       const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
 
       // We fetch bills and join the categories into the expenses
-      const { data, error } = await supabase
-        .from('bills')
-        .select(`
-          id,
-          billing_date,
-          is_smart_input,
-          expenses (
-            id,
-            item_name,
-            qty,
-            unit,
-            price_per_unit,
-            total_amount,
-            entry_date,
-            categories (
-              name
-            )
-          )
-        `)
-        .eq('branch_id', branchId)
-        .gte('billing_date', startDate)
-        .lte('billing_date', endDate)
-        .order('billing_date', { ascending: false });
+      const { data, error } = await getBillsWithExpensesByBranchAndDateRange(
+        branchId,
+        startDate,
+        endDate
+      );
 
       if (error) throw error;
 
@@ -65,24 +51,7 @@ export function useBillDetail(billId: string) {
   return useQuery({
     queryKey: ['bill-detail', billId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bills')
-        .select(`
-          *,
-          branches (name),
-          expenses (
-            id,
-            item_name,
-            qty,
-            unit,
-            price_per_unit,
-            total_amount,
-            category_id,
-            categories (name)
-          )
-        `)
-        .eq('id', billId)
-        .single();
+      const { data, error } = await getBillDetail(billId);
 
       if (error) throw error;
       return data;
@@ -93,10 +62,7 @@ export function useBillDetail(billId: string) {
 
 export async function deleteExpense(id: number) { // Add branchId here
   try {
-    const { error } = await supabase
-      .from('expenses')
-      .delete()
-      .eq('id', id);
+    const { error } = await removeExpense(id);
 
     if (error) throw error;
     return { success: true };

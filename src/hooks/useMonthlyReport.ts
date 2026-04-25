@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "../lib/supabase";
 import { exportToPDF, ReportItem } from "../lib/exportUtils";
 import { useState } from "react";
 import { thaiMonths } from "../lib/utils";
+import {
+  getExpenseSummaryByCategory,
+  getExpensesByCategoryInRange,
+} from "../repository/expenseRepository";
 
 export function useMonthlyReport(branchId: string) {
 
@@ -15,17 +18,11 @@ export function useMonthlyReport(branchId: string) {
       const startDate = new Date(year, month - 1, 1).toISOString();
       const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-      const { data, error } = await supabase
-        .from('expenses')
-        .select(`
-          total_amount,
-          category_id,
-          categories (name),
-          bills!inner (branch_id, billing_date)
-        `)
-        .eq('bills.branch_id', branchId)
-        .gte('bills.billing_date', startDate)
-        .lte('bills.billing_date', endDate);
+      const { data, error } = await getExpenseSummaryByCategory(
+        branchId,
+        startDate,
+        endDate
+      );
 
       if (error) throw error;
 
@@ -49,29 +46,12 @@ export function useMonthlyReport(branchId: string) {
     const startDate = new Date(year, month - 1, 1).toISOString();
     const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-    const { data, error } = await supabase
-      .from('expenses')
-      .select(`
-      id,
-      item_name,
-      qty,
-      unit,
-      price_per_unit,
-      total_amount,
-      entry_date,
-      category_id,
-      bills!inner (
-        id,
-        billing_date,
-        branch_id
-      ),
-      categories (name)
-    `)
-      .eq('bills.branch_id', branchId)
-      .eq('category_id', categoryId)
-      .gte('bills.billing_date', startDate)
-      .lte('bills.billing_date', endDate)
-      .order('entry_date', { ascending: true });
+    const { data, error } = await getExpensesByCategoryInRange(
+      branchId,
+      categoryId,
+      startDate,
+      endDate
+    );
 
     if (error) throw error;
 

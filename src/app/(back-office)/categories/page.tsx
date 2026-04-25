@@ -1,12 +1,9 @@
-import { supabase } from "@/src/lib/supabase";
+import { listCategories } from "@/src/repository/categoryRepository";
 import CategoryManager from "./container"; // Import your container
 
 export default async function CategoriesPage() {
   // Fetch categories from Supabase on the server
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name', { ascending: true });
+  const { data: categories } = await listCategories();
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">

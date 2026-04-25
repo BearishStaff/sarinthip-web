@@ -1,6 +1,6 @@
 "use server";
 
-import { supabase } from "@/src/lib/supabase";
+import { createBranch } from "@/src/repository/branchRepository";
 import { revalidatePath } from "next/cache";
 
 export async function addBranch(formData: FormData) {
@@ -11,10 +11,7 @@ export async function addBranch(formData: FormData) {
   }
 
   // Insert into Supabase
-  const { data, error } = await supabase
-    .from("branches")
-    .insert([{ name }])
-    .select();
+  const { data, error } = await createBranch(name);
 
   if (error) {
     console.error("Supabase Error:", error);

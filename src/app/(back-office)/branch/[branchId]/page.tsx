@@ -1,4 +1,4 @@
-import { supabase } from '@/src/lib/supabase';
+import { getBranchById } from "@/src/repository/branchRepository";
 import BranchDashboardContainer from './container';
 
 interface BranchDashboardPageProps {
@@ -8,11 +8,7 @@ interface BranchDashboardPageProps {
 export default async function BranchDashboard({ params }: Readonly<BranchDashboardPageProps>) {
   const { branchId } = await params
   // Fetch specific branch data
-  const { data: branch, error } = await supabase
-    .from('branches')
-    .select('name')
-    .eq('id', branchId)
-    .single();
+  const { data: branch } = await getBranchById(branchId);
 
   // Fallback title if branch isn't found
   const branchName = branch?.name || "ไม่พบข้อมูลสาขา";
