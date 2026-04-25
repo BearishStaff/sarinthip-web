@@ -15,7 +15,7 @@ export default function HomeContainer() {
   const { branchesData, isLoading } = useBranch();
 
   return (
-    <div className={`min-h-screen ${appColorClasses.pageBg} flex flex-col items-center p-6 font-sans`}>
+    <div className={`min-h-screen ${appColorClasses.pageBg} flex flex-col items-center p-4 md:p-6 font-sans`}>
       {/* Welcome Header */}
       <header className="w-full max-w-md mt-8 mb-10 text-center">
         <h1 className={`text-3xl font-extrabold ${appColorClasses.textPrimary} tracking-tight`}>
@@ -25,7 +25,9 @@ export default function HomeContainer() {
       </header>
 
       {isLoading ? (
-        <LoaderIcon className="center"></LoaderIcon>
+        <div className="w-full max-w-md flex justify-center py-10">
+          <LoaderIcon className={`w-8 h-8 animate-spin ${appColorClasses.textMuted}`} />
+        </div>
       ) : (
         <>
           {/* Branch Grid */}

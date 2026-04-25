@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useExpense } from "@/src/hooks/useExpense";
+import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 import { thaiMonths } from "@/src/lib/utils";
 
 type Props = {
@@ -51,26 +52,26 @@ export default function BranchDashboardContainer({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4 md:p-6 font-sans">
+    <div className={`min-h-screen ${appColorClasses.pageBg} flex flex-col items-center p-4 md:p-6 font-sans`}>
       {/* Header Navigation */}
       <div className="w-full max-w-md flex items-center justify-between mb-6">
         <button
           onClick={() => router.push("/")}
-          className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+          className={`p-2 rounded-full transition-colors hover:bg-surface border ${appColorClasses.borderSoft}`}
         >
-          <ArrowLeft className="w-6 h-6 text-gray-700" />
+          <ArrowLeft className={`w-6 h-6 ${appColorClasses.textSecondary}`} />
         </button>
-        <h1 className="text-xl font-bold text-gray-800">{branchName}</h1>
+        <h1 className={`text-xl font-bold ${appColorClasses.textPrimary}`}>{branchName}</h1>
         <div className="w-10"></div>
       </div>
 
       {/* Monthly Summary Card */}
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-8">
-        <div className="grid grid-cols-2 gap-4 mb-4 text-black">
+      <div className={`w-full max-w-md ${appColorClasses.cardBg} rounded-3xl p-6 shadow-sm border ${appColorClasses.borderSoft} mb-8`}>
+        <div className={`grid grid-cols-2 gap-4 mb-4 ${appColorClasses.textPrimary}`}>
           <div className="space-y-2">
             <label
               htmlFor="branch-dashboard-month"
-              className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+              className={`text-[10px] font-black ${appColorClasses.textMuted} uppercase tracking-widest ml-1`}
             >
               เดือน
             </label>
@@ -79,7 +80,7 @@ export default function BranchDashboardContainer({
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
               disabled={isLoading}
-              className="w-full p-3 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black text-sm font-bold appearance-none disabled:opacity-60"
+              className={`w-full p-3 bg-surface rounded-2xl border ${appColorClasses.borderSubtle} focus:ring-2 focus:ring-brand-500 text-sm font-bold appearance-none disabled:opacity-60`}
             >
               {thaiMonths.map((name, i) => (
                 <option key={name} value={i + 1}>
@@ -91,7 +92,7 @@ export default function BranchDashboardContainer({
           <div className="space-y-2">
             <label
               htmlFor="branch-dashboard-year"
-              className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+              className={`text-[10px] font-black ${appColorClasses.textMuted} uppercase tracking-widest ml-1`}
             >
               ปี (ค.ศ.)
             </label>
@@ -100,7 +101,7 @@ export default function BranchDashboardContainer({
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
               disabled={isLoading}
-              className="w-full p-3 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black text-sm font-bold appearance-none disabled:opacity-60"
+              className={`w-full p-3 bg-surface rounded-2xl border ${appColorClasses.borderSubtle} focus:ring-2 focus:ring-brand-500 text-sm font-bold appearance-none disabled:opacity-60`}
             >
               {yearOptions.map((y) => (
                 <option key={y} value={y}>
@@ -113,30 +114,30 @@ export default function BranchDashboardContainer({
 
         <div className="flex justify-between items-start mb-4">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+            <p className={`text-sm font-medium ${appColorClasses.textSecondary} uppercase tracking-wider`}>
               รายจ่ายรวมเดือนนี้
             </p>
-            <h2 className="text-3xl font-black text-gray-900 min-h-9 flex items-center">
+            <h2 className={`text-3xl font-black ${appColorClasses.textPrimary} min-h-9 flex items-center`}>
               {isLoading ? (
-                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                <Loader2 className={`w-8 h-8 animate-spin ${appColorClasses.textMuted}`} />
               ) : (
                 `฿${monthlyTotal.toLocaleString()}`
               )}
             </h2>
           </div>
-          <div className="bg-green-100 p-2 rounded-xl">
-            <TrendingUp className="w-5 h-5 text-green-600" />
+          <div className={`${intentColorClasses.success.bg} p-2 rounded-xl`}>
+            <TrendingUp className={`w-5 h-5 ${intentColorClasses.success.text}`} />
           </div>
         </div>
 
         {isError && (
-          <p className="text-sm font-bold text-red-600 mb-3">
+          <p className={`text-sm font-bold ${intentColorClasses.danger.text} mb-3`}>
             โหลดข้อมูลไม่สำเร็จ ลองใหม่อีกครั้ง
           </p>
         )}
 
-        <div className="flex items-center text-sm text-gray-500 bg-gray-50 p-3 rounded-2xl">
-          <Calendar className="w-4 h-4 mr-2 text-blue-500 shrink-0" />
+        <div className={`flex items-center text-sm ${appColorClasses.textSecondary} bg-surface p-3 rounded-2xl`}>
+          <Calendar className={`w-4 h-4 mr-2 ${intentColorClasses.brand.textStrong} shrink-0`} />
           <span>
             ประจำเดือน {thaiMonths[month - 1]} พ.ศ. {year + 543}
           </span>
@@ -147,7 +148,7 @@ export default function BranchDashboardContainer({
       <div className="w-full max-w-md grid grid-cols-1 gap-4">
         <Link
           href={`/branch/${branchId}/entry`}
-          className="flex items-center justify-between bg-gray-900 text-white p-5 rounded-2xl shadow-lg hover:bg-black transition-all active:scale-95"
+          className={`flex items-center justify-between bg-text-primary text-white p-5 rounded-2xl shadow-md hover:bg-foreground transition-all active:scale-95`}
         >
           <div className="flex items-center gap-4">
             <div className="bg-white/10 p-3 rounded-xl">
@@ -155,7 +156,7 @@ export default function BranchDashboardContainer({
             </div>
             <div className="text-left">
               <p className="font-bold text-lg">บันทึกรายจ่าย</p>
-              <p className="text-gray-400 text-xs">
+              <p className="text-gray-300 text-xs">
                 ก๊อปวางข้อความ หรือกรอกฟอร์ม
               </p>
             </div>
@@ -165,29 +166,29 @@ export default function BranchDashboardContainer({
 
         <Link
           href={`/branch/${branchId}/export`}
-          className="flex items-center justify-between bg-white border border-gray-200 p-5 rounded-2xl hover:border-blue-500 transition-all active:scale-95 shadow-sm"
+          className={`flex items-center justify-between ${appColorClasses.cardBg} border ${appColorClasses.borderSoft} p-5 rounded-2xl hover:border-brand-400 transition-all active:scale-95 shadow-sm`}
         >
           <div className="flex items-center gap-4">
-            <div className="bg-blue-50 p-3 rounded-xl">
-              <FileText className="w-6 h-6 text-blue-600" />
+            <div className={`${intentColorClasses.brand.bg} p-3 rounded-xl`}>
+              <FileText className={`w-6 h-6 ${intentColorClasses.brand.text}`} />
             </div>
             <div className="text-left">
-              <p className="font-bold text-lg text-gray-800">
+              <p className={`font-bold text-lg ${appColorClasses.textPrimary}`}>
                 ออกใบรับรอง (Export)
               </p>
-              <p className="text-gray-500 text-xs">
+              <p className={`${appColorClasses.textSecondary} text-xs`}>
                 สรุปรายเดือนแยกตามหมวดหมู่
               </p>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-300" />
+          <ChevronRight className={`w-5 h-5 ${appColorClasses.textMuted}`} />
         </Link>
 
         <Link href="/categories">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-3xl text-white shadow-lg shadow-blue-100 flex justify-between items-center group cursor-pointer">
+          <div className="bg-linear-to-br from-brand-500 to-brand-600 p-6 rounded-3xl text-white shadow-lg shadow-brand-100 flex justify-between items-center group cursor-pointer">
             <div>
               <h3 className="text-lg font-black">สอนคำหลัก AI</h3>
-              <p className="text-blue-100 text-xs">
+              <p className="text-brand-100 text-xs">
                 ตั้งค่าหมวดหมู่และ Keyword อัตโนมัติ
               </p>
             </div>
@@ -201,11 +202,11 @@ export default function BranchDashboardContainer({
       {/* Recent Activity List */}
       <div className="w-full max-w-md mt-10">
         <div className="flex justify-between items-center mb-4 px-2">
-          <h3 className="text-sm font-bold text-gray-400 uppercase">
+          <h3 className={`text-sm font-bold ${appColorClasses.textMuted} uppercase`}>
             รายการล่าสุด
           </h3>
           {isLoading && (
-            <span className="text-xs text-gray-400 animate-pulse">
+            <span className={`text-xs ${appColorClasses.textMuted} animate-pulse`}>
               กำลังโหลด...
             </span>
           )}
@@ -213,7 +214,7 @@ export default function BranchDashboardContainer({
 
         <div className="space-y-3">
           {!isLoading && expenseData?.bills?.length === 0 && (
-              <p className="text-center text-sm text-gray-500 py-8 px-4 bg-white rounded-2xl border border-gray-100">
+              <p className={`text-center text-sm ${appColorClasses.textSecondary} py-8 px-4 ${appColorClasses.cardBg} rounded-2xl border ${appColorClasses.borderSoft}`}>
                 ไม่มีบิลในเดือนที่เลือก
               </p>
             )}
@@ -221,10 +222,10 @@ export default function BranchDashboardContainer({
             <div
               key={bill.id}
               onClick={() => onSelectBill(bill.id)} // 👈 Updated routing
-              className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm 
+              className={`${appColorClasses.cardBg} p-4 rounded-2xl border ${appColorClasses.borderSoft} shadow-sm 
                  flex justify-between items-center cursor-pointer 
-                 hover:bg-gray-50 hover:border-blue-100 hover:shadow-md 
-                 active:scale-[0.98] transition-all group"
+                 hover:bg-surface hover:border-brand-100 hover:shadow-md 
+                 active:scale-[0.98] transition-all group`}
             >
               <div className="flex gap-3 items-center">
                 {/* Added group-hover to the icon background for extra polish */}
@@ -232,23 +233,23 @@ export default function BranchDashboardContainer({
                   className={`p-2 rounded-lg transition-colors ${
                     bill.is_smart_input
                       ? "bg-purple-50 group-hover:bg-purple-100"
-                      : "bg-gray-50 group-hover:bg-blue-50"
+                      : "bg-surface group-hover:bg-brand-50"
                   }`}
                 >
                   {bill.is_smart_input ? (
                     <Zap className="w-4 h-4 text-purple-500" />
                   ) : (
-                    <FileText className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                    <FileText className={`w-4 h-4 ${appColorClasses.textMuted} group-hover:text-brand-500`} />
                   )}
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">
+                  <span className={`font-semibold ${appColorClasses.textPrimary} text-sm group-hover:text-brand-600 transition-colors`}>
                     {bill.expenses[0]?.item_name || "ไม่มีรายการ"}
                     {bill.expenses.length > 1 &&
                       ` และอีก ${bill.expenses.length - 1} รายการ`}
                   </span>
-                  <span className="text-[10px] text-gray-400">
+                  <span className={`text-[10px] ${appColorClasses.textMuted}`}>
                     {new Date(bill.billing_date).toLocaleDateString("th-TH")}
                   </span>
                 </div>
@@ -256,15 +257,15 @@ export default function BranchDashboardContainer({
 
               <div className="flex items-center gap-2">
                 <div className="text-right">
-                  <span className="font-bold text-gray-900 block">
+                  <span className={`font-bold ${appColorClasses.textPrimary} block`}>
                     ฿{bill.bill_total.toLocaleString()}
                   </span>
-                  <span className="text-[10px] text-gray-400 uppercase tracking-tighter">
+                  <span className={`text-[10px] ${appColorClasses.textMuted} uppercase tracking-tighter`}>
                     {bill.expenses.length} Items
                   </span>
                 </div>
                 {/* Optional: Add a small chevron to signal clickability */}
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" />
+                <ChevronRight className={`w-4 h-4 ${appColorClasses.textMuted} group-hover:text-brand-400 transition-colors`} />
               </div>
             </div>
           ))}

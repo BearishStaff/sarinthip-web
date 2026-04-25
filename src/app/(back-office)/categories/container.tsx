@@ -1,15 +1,16 @@
 "use client";
 import { useState } from "react";
-import { Tag, Plus, Save, Trash2, Edit3, X, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Edit3, ArrowLeft } from "lucide-react";
 import { deleteCategory, upsertCategory } from "@/src/actions/categoryAction";
 import { useRouter } from "next/navigation";
+import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 
 export default function CategoryManager({
   initialCategories,
 }: {
-  initialCategories: any[];
+  readonly initialCategories: any[];
 }) {
-    const router = useRouter();
+  const router = useRouter();
   // Form State
   const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState("");
@@ -54,31 +55,40 @@ export default function CategoryManager({
     }
     setLoading(false);
   };
+  let saveButtonLabel = "ยืนยันเพิ่มหมวดหมู่";
+  if (loading) {
+    saveButtonLabel = "กำลังบันทึก...";
+  } else if (editingId) {
+    saveButtonLabel = "บันทึกการแก้ไข";
+  }
 
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-8">
+    <div className={`min-h-screen ${appColorClasses.pageBg} p-6 max-w-md mx-auto space-y-8`}>
       <div className="flex items-center gap-4 mb-2">
         <button
           onClick={() => router.back()}
-          className="p-3 bg-white border-4 border-gray-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-2xl active:shadow-none active:translate-y-1 transition-all"
+          className={`p-2 rounded-full transition-colors hover:bg-surface border ${appColorClasses.borderSoft}`}
         >
-          <ArrowLeft className="w-6 h-6 text-gray-900" strokeWidth={3} />
+          <ArrowLeft className={`w-6 h-6 ${appColorClasses.textSecondary}`} />
         </button>
 
         <div>
-          <h1 className="text-2xl font-black text-gray-900 leading-none">
+          <h1 className={`text-2xl font-black ${appColorClasses.textPrimary} leading-none`}>
             ตั้งค่าหมวดหมู่
           </h1>
-          <p className="text-sm font-bold text-gray-600 mt-1">
+          <p className={`text-sm font-bold ${appColorClasses.textSecondary} mt-1`}>
             จัดการคำหลัก AI
           </p>
         </div>
       </div>
-      {/* Form Section - High Contrast */}
       <div
-        className={`p-6 rounded-3xl border-4 transition-all ${editingId ? "border-blue-600 bg-blue-50" : "border-gray-900 bg-white"}`}
+        className={`p-6 rounded-3xl border transition-all ${
+          editingId
+            ? `${intentColorClasses.brand.borderStrong} ${intentColorClasses.brand.bg}`
+            : `${appColorClasses.borderSoft} ${appColorClasses.cardBg}`
+        }`}
       >
-        <h2 className="text-xl font-black text-gray-900 mb-4 flex items-center gap-2">
+        <h2 className={`text-xl font-black ${appColorClasses.textPrimary} mb-4 flex items-center gap-2`}>
           {editingId ? (
             <Edit3 className="w-6 h-6" />
           ) : (
@@ -92,31 +102,27 @@ export default function CategoryManager({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="ชื่อหมวดหมู่..."
-            className="w-full p-4 bg-white border-2 border-gray-900 rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-blue-200 outline-none"
+            className={`w-full p-4 bg-white border ${appColorClasses.borderSoft} rounded-2xl font-bold ${appColorClasses.textPrimary} focus:ring-2 focus:ring-brand-500 outline-none`}
           />
           <textarea
             value={keywordInput}
             onChange={(e) => setKeywordInput(e.target.value)}
             placeholder="Keyword (คั่นด้วยคอมม่า เช่น เนื้อ, ไก่, หมู)"
-            className="w-full p-4 bg-white border-2 border-gray-900 rounded-2xl font-bold text-gray-900 text-sm h-24 outline-none"
+            className={`w-full p-4 bg-white border ${appColorClasses.borderSoft} rounded-2xl font-bold ${appColorClasses.textPrimary} text-sm h-24 outline-none`}
           />
 
           <div className="flex gap-2">
             <button
               onClick={handleSave}
               disabled={loading}
-              className="flex-1 h-14 bg-gray-900 text-white rounded-2xl font-black text-lg active:scale-95 transition-all disabled:bg-gray-400"
+              className="flex-1 h-14 bg-text-primary text-white rounded-2xl font-black text-lg active:scale-95 transition-all hover:bg-foreground disabled:bg-gray-400"
             >
-              {loading
-                ? "กำลังบันทึก..."
-                : editingId
-                  ? "บันทึกการแก้ไข"
-                  : "ยืนยันเพิ่มหมวดหมู่"}
+              {saveButtonLabel}
             </button>
-            {editingId && (
+            {Boolean(editingId) && (
               <button
                 onClick={cancelEdit}
-                className="px-6 h-14 bg-white border-2 border-gray-900 text-gray-900 rounded-2xl font-black hover:bg-gray-100"
+                className={`px-6 h-14 bg-white border ${appColorClasses.borderSoft} ${appColorClasses.textPrimary} rounded-2xl font-black hover:bg-surface`}
               >
                 ยกเลิก
               </button>
@@ -127,21 +133,21 @@ export default function CategoryManager({
 
       {/* List Section */}
       <div className="space-y-3">
-        <p className="text-xs font-black text-gray-900 uppercase tracking-widest ml-2">
+        <p className={`text-xs font-black ${appColorClasses.textPrimary} uppercase tracking-widest ml-2`}>
           หมวดหมู่ทั้งหมด ({initialCategories.length})
         </p>
         {initialCategories.map((cat) => (
           <div
             key={cat.id}
-            className="bg-white p-5 rounded-2xl border-2 border-gray-900 flex justify-between items-center group shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            className={`${appColorClasses.cardBg} p-5 rounded-2xl border ${appColorClasses.borderSoft} flex justify-between items-center group shadow-sm`}
           >
             <div className="flex-1">
-              <p className="font-black text-gray-900 text-lg">{cat.name}</p>
+              <p className={`font-black ${appColorClasses.textPrimary} text-lg`}>{cat.name}</p>
               <div className="flex flex-wrap gap-1 mt-2">
                 {cat.keywords?.map((kw: string) => (
                   <span
                     key={kw}
-                    className="text-[11px] bg-gray-100 border border-gray-300 text-gray-900 px-2 py-1 rounded-lg font-bold"
+                    className={`text-[11px] bg-surface border ${appColorClasses.borderSubtle} ${appColorClasses.textPrimary} px-2 py-1 rounded-lg font-bold`}
                   >
                     {kw}
                   </span>
@@ -151,7 +157,7 @@ export default function CategoryManager({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => startEditing(cat)}
-                className="p-3 bg-gray-100 hover:bg-blue-600 hover:text-white rounded-xl transition-all text-gray-900"
+                className={`p-3 bg-surface hover:bg-brand-500 hover:text-white rounded-xl transition-all ${appColorClasses.textPrimary}`}
               >
                 <Edit3 className="w-5 h-5" />
               </button>
@@ -159,7 +165,7 @@ export default function CategoryManager({
                 onClick={() => {
                   if (confirm("ลบหมวดหมู่หรือไม่?")) deleteCategory(cat.id);
                 }}
-                className="p-3 bg-gray-100 hover:bg-red-600 hover:text-white rounded-xl transition-all text-gray-900"
+                className={`p-3 bg-surface hover:bg-danger-600 hover:text-white rounded-xl transition-all ${appColorClasses.textPrimary}`}
               >
                 <Trash2 className="w-5 h-5" />
               </button>

@@ -5,10 +5,15 @@ import { thaiMonths } from "@/src/lib/utils";
 import { FileText, Download, Share2, ArrowLeft, Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 
 type Props = {
   branchId: string;
 };
+
+function isLineApp() {
+  return /Line/i.test(navigator.userAgent);
+}
 
 export default function ExportReportContainer({
   branchId,
@@ -39,18 +44,13 @@ export default function ExportReportContainer({
     generateExpensePDF(branchId);
   };
 
-  function isLineApp() {
-    return /Line/i.test(navigator.userAgent);
-  }
-  
-
   const handleDownloadByCategory = (categoryId: string) => {
     if (actionsDisabled) return;
     if (isLineApp()) {
       // Show instruction to open in external browser
       alert('Please tap the "..." menu and select "Open in Browser" to download the PDF');
       // Or redirect to open in external browser
-      window.location.href = 'intent://your-app-url#Intent;scheme=https;end';
+      globalThis.location.href = 'intent://your-app-url#Intent;scheme=https;end';
     } else {
       generateExpensePDF(categoryId);
     }
@@ -78,25 +78,25 @@ export default function ExportReportContainer({
   };
 
   return (
-    <div className="min-h-screen text-black bg-gray-50 p-4 md:p-8">
+    <div className={`min-h-screen ${appColorClasses.textPrimary} ${appColorClasses.pageBg} p-4 md:p-8`}>
       <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-black mb-6 flex items-center gap-2">
+        <h1 className={`text-2xl font-black mb-6 flex items-center gap-2 ${appColorClasses.textPrimary}`}>
           <button
             onClick={() => router.back()}
-            className="p-2 mr-2 hover:bg-gray-200 rounded-full transition-colors"
+            className={`p-2 mr-2 rounded-full transition-colors hover:bg-surface border ${appColorClasses.borderSoft}`}
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className={`w-6 h-6 ${appColorClasses.textSecondary}`} />
           </button>
-          <FileText className="w-6 h-6 text-blue-600" />
+          <FileText className={`w-6 h-6 ${intentColorClasses.brand.text}`} />
           สรุปรายงานประจำเดือน
         </h1>
 
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6">
-          <div className="grid grid-cols-2 gap-4 pb-6 border-b border-dashed">
+        <div className={`${appColorClasses.cardBg} rounded-3xl p-6 shadow-sm border ${appColorClasses.borderSoft} mb-6`}>
+          <div className={`grid grid-cols-2 gap-4 pb-6 border-b border-dashed ${appColorClasses.borderSoft}`}>
             <div className="space-y-2">
               <label
                 htmlFor="export-report-month"
-                className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+                className={`text-[10px] font-black ${appColorClasses.textMuted} uppercase tracking-widest ml-1`}
               >
                 เดือน
               </label>
@@ -105,7 +105,7 @@ export default function ExportReportContainer({
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
                 disabled={isReportLoading}
-                className="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black text-sm font-bold appearance-none disabled:opacity-60"
+                className={`w-full p-4 bg-surface rounded-2xl border ${appColorClasses.borderSubtle} focus:ring-2 focus:ring-brand-500 text-sm font-bold appearance-none disabled:opacity-60`}
               >
                 {thaiMonths.map((name, i) => (
                   <option key={name} value={i + 1}>
@@ -117,7 +117,7 @@ export default function ExportReportContainer({
             <div className="space-y-2">
               <label
                 htmlFor="export-report-year"
-                className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1"
+                className={`text-[10px] font-black ${appColorClasses.textMuted} uppercase tracking-widest ml-1`}
               >
                 ปี (ค.ศ.)
               </label>
@@ -126,7 +126,7 @@ export default function ExportReportContainer({
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
                 disabled={isReportLoading}
-                className="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black text-sm font-bold appearance-none disabled:opacity-60"
+                className={`w-full p-4 bg-surface rounded-2xl border ${appColorClasses.borderSubtle} focus:ring-2 focus:ring-brand-500 text-sm font-bold appearance-none disabled:opacity-60`}
               >
                 {yearOptions.map((y) => (
                   <option key={y} value={y}>
@@ -138,18 +138,18 @@ export default function ExportReportContainer({
           </div>
 
           {isReportError && (
-            <p className="text-sm font-bold text-red-600 mb-4">
+            <p className={`text-sm font-bold ${intentColorClasses.danger.text} mb-4`}>
               โหลดรายงานไม่สำเร็จ ลองใหม่อีกครั้ง
             </p>
           )}
 
-          <div className="text-center pb-6 border-b border-dashed">
-            <p className="text-sm font-bold text-gray-400 uppercase">
+          <div className={`text-center pb-6 border-b border-dashed ${appColorClasses.borderSoft}`}>
+            <p className={`text-sm font-bold ${appColorClasses.textMuted} uppercase`}>
               ยอดใช้จ่ายรวม {thaiMonths[month - 1]} {year}
             </p>
-            <h2 className="text-4xl font-black text-gray-900 mt-1 flex items-center justify-center gap-2 min-h-10">
+            <h2 className={`text-4xl font-black ${appColorClasses.textPrimary} mt-1 flex items-center justify-center gap-2 min-h-10`}>
               {isReportLoading ? (
-                <Loader2 className="w-10 h-10 animate-spin text-gray-400" />
+                <Loader2 className={`w-10 h-10 animate-spin ${appColorClasses.textMuted}`} />
               ) : (
                 <>฿{grandTotal.toLocaleString()}</>
               )}
@@ -157,7 +157,7 @@ export default function ExportReportContainer({
           </div>
 
           <div className="py-6 space-y-4">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <p className={`text-[10px] font-bold ${appColorClasses.textMuted} uppercase tracking-widest`}>
               แยกตามหมวดหมู่
             </p>
             {reportData?.map((item: any) => (
@@ -165,17 +165,17 @@ export default function ExportReportContainer({
                 key={item.categoryId}
                 className="flex justify-between items-center gap-2"
               >
-                <span className="text-gray-600 font-medium truncate min-w-0">
+                <span className={`${appColorClasses.textSecondary} font-medium truncate min-w-0`}>
                   {item.name}
                 </span>
-                <span className="font-bold text-gray-900 shrink-0">
+                <span className={`font-bold ${appColorClasses.textPrimary} shrink-0`}>
                   ฿{item.total.toLocaleString()}
                 </span>
                 <button
                   type="button"
                   disabled={actionsDisabled}
                   onClick={() => handleDownloadByCategory(item.categoryId)}
-                  className="h-12 w-12 shrink-0 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                  className="h-12 w-12 shrink-0 bg-text-primary text-white rounded-2xl font-bold flex items-center justify-center active:scale-95 transition-all hover:bg-foreground disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                   aria-label={`ดาวน์โหลด PDF ${item.name}`}
                 >
                   {isReportLoading ? (
@@ -193,7 +193,7 @@ export default function ExportReportContainer({
               type="button"
               disabled={actionsDisabled}
               onClick={handleDownload}
-              className="w-full h-14 bg-gray-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              className="w-full h-14 bg-text-primary text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-foreground disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
             >
               {isReportLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -206,10 +206,10 @@ export default function ExportReportContainer({
               type="button"
               disabled={actionsDisabled}
               onClick={handleShare}
-              className="w-full h-14 bg-white border border-gray-200 text-gray-700 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              className={`w-full h-14 ${appColorClasses.cardBg} border ${appColorClasses.borderSoft} ${appColorClasses.textSecondary} rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:border-brand-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100`}
             >
               {isReportLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                <Loader2 className={`w-5 h-5 animate-spin ${appColorClasses.textMuted}`} />
               ) : (
                 <Share2 className="w-5 h-5" />
               )}
