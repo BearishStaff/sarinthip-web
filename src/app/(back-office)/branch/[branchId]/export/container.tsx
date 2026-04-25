@@ -15,9 +15,7 @@ function isLineApp() {
   return /Line/i.test(navigator.userAgent);
 }
 
-export default function ExportReportContainer({
-  branchId,
-}: Readonly<Props>) {
+export default function ExportReportContainer({ branchId }: Readonly<Props>) {
   const {
     reportData,
     generateExpensePDF,
@@ -39,48 +37,29 @@ export default function ExportReportContainer({
 
   const actionsDisabled = isReportLoading;
 
-  const handleDownload = () => {
-    if (actionsDisabled) return;
-    generateExpensePDF(branchId);
-  };
-
   const handleDownloadByCategory = (categoryId: string) => {
     if (actionsDisabled) return;
     if (isLineApp()) {
       // Show instruction to open in external browser
-      alert('Please tap the "..." menu and select "Open in Browser" to download the PDF');
+      alert(
+        'Please tap the "..." menu and select "Open in Browser" to download the PDF',
+      );
       // Or redirect to open in external browser
-      globalThis.location.href = 'intent://your-app-url#Intent;scheme=https;end';
+      globalThis.location.href =
+        "intent://your-app-url#Intent;scheme=https;end";
     } else {
       generateExpensePDF(categoryId);
     }
   };
 
-  const handleShare = async () => {
-    if (actionsDisabled) return;
-    const shareData = {
-      title: `รายงานสรุปยอดจ่าย - ${branchId}`,
-      text: `สรุปยอดรายจ่ายเดือน ${thaiMonths[month - 1]} ${year}: ฿${grandTotal.toLocaleString()}`,
-      url: globalThis.location.href,
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(shareData.text);
-        alert("คัดลอกสรุปรายงานไปยัง Clipboard แล้ว!");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   return (
-    <div className={`min-h-screen ${appColorClasses.textPrimary} ${appColorClasses.pageBg} p-4 md:p-8`}>
+    <div
+      className={`min-h-screen ${appColorClasses.textPrimary} ${appColorClasses.pageBg} p-4 md:p-8`}
+    >
       <div className="max-w-md mx-auto">
-        <h1 className={`text-2xl font-black mb-6 flex items-center gap-2 ${appColorClasses.textPrimary}`}>
+        <h1
+          className={`text-2xl font-black mb-6 flex items-center gap-2 ${appColorClasses.textPrimary}`}
+        >
           <button
             onClick={() => router.back()}
             className={`p-2 mr-2 rounded-full transition-colors hover:bg-surface border ${appColorClasses.borderSoft}`}
@@ -91,8 +70,12 @@ export default function ExportReportContainer({
           สรุปรายงานประจำเดือน
         </h1>
 
-        <div className={`${appColorClasses.cardBg} rounded-3xl p-6 shadow-sm border ${appColorClasses.borderSoft} mb-6`}>
-          <div className={`grid grid-cols-2 gap-4 pb-6 border-b border-dashed ${appColorClasses.borderSoft}`}>
+        <div
+          className={`${appColorClasses.cardBg} rounded-3xl p-6 shadow-sm border ${appColorClasses.borderSoft} mb-6`}
+        >
+          <div
+            className={`grid grid-cols-2 gap-4 pb-6 border-b border-dashed ${appColorClasses.borderSoft}`}
+          >
             <div className="space-y-2">
               <label
                 htmlFor="export-report-month"
@@ -138,18 +121,28 @@ export default function ExportReportContainer({
           </div>
 
           {isReportError && (
-            <p className={`text-sm font-bold ${intentColorClasses.danger.text} mb-4`}>
+            <p
+              className={`text-sm font-bold ${intentColorClasses.danger.text} mb-4`}
+            >
               โหลดรายงานไม่สำเร็จ ลองใหม่อีกครั้ง
             </p>
           )}
 
-          <div className={`text-center pb-6 border-b border-dashed ${appColorClasses.borderSoft}`}>
-            <p className={`text-sm font-bold ${appColorClasses.textMuted} uppercase`}>
+          <div
+            className={`text-center pb-6 border-b border-dashed ${appColorClasses.borderSoft}`}
+          >
+            <p
+              className={`text-sm font-bold ${appColorClasses.textMuted} uppercase`}
+            >
               ยอดใช้จ่ายรวม {thaiMonths[month - 1]} {year}
             </p>
-            <h2 className={`text-4xl font-black ${appColorClasses.textPrimary} mt-1 flex items-center justify-center gap-2 min-h-10`}>
+            <h2
+              className={`text-4xl font-black ${appColorClasses.textPrimary} mt-1 flex items-center justify-center gap-2 min-h-10`}
+            >
               {isReportLoading ? (
-                <Loader2 className={`w-10 h-10 animate-spin ${appColorClasses.textMuted}`} />
+                <Loader2
+                  className={`w-10 h-10 animate-spin ${appColorClasses.textMuted}`}
+                />
               ) : (
                 <>฿{grandTotal.toLocaleString()}</>
               )}
@@ -157,7 +150,9 @@ export default function ExportReportContainer({
           </div>
 
           <div className="py-6 space-y-4">
-            <p className={`text-[10px] font-bold ${appColorClasses.textMuted} uppercase tracking-widest`}>
+            <p
+              className={`text-[10px] font-bold ${appColorClasses.textMuted} uppercase tracking-widest`}
+            >
               แยกตามหมวดหมู่
             </p>
             {reportData?.map((item: any) => (
@@ -165,10 +160,14 @@ export default function ExportReportContainer({
                 key={item.categoryId}
                 className="flex justify-between items-center gap-2"
               >
-                <span className={`${appColorClasses.textSecondary} font-medium truncate min-w-0`}>
+                <span
+                  className={`${appColorClasses.textSecondary} font-medium truncate min-w-0`}
+                >
                   {item.name}
                 </span>
-                <span className={`font-bold ${appColorClasses.textPrimary} shrink-0`}>
+                <span
+                  className={`font-bold ${appColorClasses.textPrimary} shrink-0`}
+                >
                   ฿{item.total.toLocaleString()}
                 </span>
                 <button
@@ -186,35 +185,6 @@ export default function ExportReportContainer({
                 </button>
               </div>
             ))}
-          </div>
-
-          <div className="pt-4 space-y-3">
-            <button
-              type="button"
-              disabled={actionsDisabled}
-              onClick={handleDownload}
-              className="w-full h-14 bg-text-primary text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-foreground disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
-            >
-              {isReportLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Download className="w-5 h-5" />
-              )}
-              ดาวน์โหลด PDF
-            </button>
-            <button
-              type="button"
-              disabled={actionsDisabled}
-              onClick={handleShare}
-              className={`w-full h-14 ${appColorClasses.cardBg} border ${appColorClasses.borderSoft} ${appColorClasses.textSecondary} rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all hover:border-brand-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100`}
-            >
-              {isReportLoading ? (
-                <Loader2 className={`w-5 h-5 animate-spin ${appColorClasses.textMuted}`} />
-              ) : (
-                <Share2 className="w-5 h-5" />
-              )}
-              แชร์รายงาน
-            </button>
           </div>
         </div>
       </div>
