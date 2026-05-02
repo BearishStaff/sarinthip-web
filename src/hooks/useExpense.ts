@@ -1,11 +1,8 @@
 "use client";
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  getBillDetail,
-  getBillsWithExpensesByBranchAndDateRange,
-} from "@/src/repository/billRepository";
-import { removeExpense } from "@/src/repository/expenseRepository";
+import { getBillDetail, getBillsWithExpensesByBranchAndDateRange } from '../services/billService';
+import { removeExpense } from '../services/expenseService';
 
 export function useExpense(branchId: string, month: number, year: number) {
   return useQuery({

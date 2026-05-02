@@ -4,12 +4,9 @@ import { myTextParser } from "@/src/lib/parser";
 import { revalidatePath } from "next/cache";
 import { convertThaiDateToISO } from "../lib/utils";
 import { suggestCategory } from "../lib/categorizer";
-import { createBill, removeBill } from "../repository/billRepository";
-import {
-  createExpenses,
-  updateExpenseById,
-} from "../repository/expenseRepository";
-import { listAllCategories } from "../repository/categoryRepository";
+import { listAllCategories } from "../services/categoryService";
+import { createBill, removeBill } from "../services/billService";
+import { createExpenses, updateExpenseById } from "../services/expenseService";
 
 export async function createBillWithExpenses(branchId: string, rawText: string) {
   try {

@@ -1,6 +1,6 @@
 "use server";
 
-import { createBranch } from "@/src/repository/branchRepository";
+import { createBranch } from "@/src/services/branchService";
 import { revalidatePath } from "next/cache";
 
 export async function addBranch(formData: FormData) {

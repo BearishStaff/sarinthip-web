@@ -1,10 +1,7 @@
 "use server";
 
-import {
-  removeCategory,
-  upsertCategoryByInput,
-} from "@/src/repository/categoryRepository";
 import { revalidatePath } from "next/cache";
+import { removeCategory, upsertCategoryByInput } from "../services/categoryService";
 
 export async function upsertCategory(data: {
   id?: number;

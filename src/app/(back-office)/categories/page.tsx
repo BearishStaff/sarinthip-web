@@ -1,4 +1,4 @@
-import { listCategories } from "@/src/repository/categoryRepository";
+import { listCategories } from "@/src/services/categoryService";
 import CategoryManager from "./container"; // Import your container
 
 export default async function CategoriesPage() {

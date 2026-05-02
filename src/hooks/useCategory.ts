@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { listCategoryOptions } from "@/src/repository/categoryRepository";
+import { listCategoryOptions } from '../services/categoryService';
 
 export function useCategories() {
   return useQuery({

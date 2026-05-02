@@ -241,7 +241,7 @@ export default function BillDetailContainer() {
                           className={`w-full p-4 bg-surface border ${appColorClasses.borderSoft} rounded-2xl font-black ${appColorClasses.textPrimary} text-lg appearance-none`}
                         >
                           <option value="">-- เลือก --</option>
-                          {allCategories.map((c) => (
+                          {allCategories.map((c: any) => (
                             <option key={c.id} value={c.id}>
                               {c.name}
                             </option>

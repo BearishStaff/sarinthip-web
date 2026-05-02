@@ -218,7 +218,7 @@ export default function BranchDashboardContainer({
                 ไม่มีบิลในเดือนที่เลือก
               </p>
             )}
-          {expenseData?.bills?.map((bill) => (
+          {expenseData?.bills?.map((bill: any) => (
             <div
               key={bill.id}
               onClick={() => onSelectBill(bill.id)} // 👈 Updated routing

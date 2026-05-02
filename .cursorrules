@@ -1,0 +1,39 @@
+กฎและมาตรฐานการเขียนโค้ด (ระบบบัญชีรายรับ-รายจ่ายแยกสาขา)
+
+1. ข้อมูลโครงสร้างฐานข้อมูล (Database Schema Context)
+AI ต้องยึดตาม Schema ของ Supabase ต่อไปนี้เสมอ:
+- `branches`: (id, name) - ข้อมูลสาขา
+- `categories`: (id, name, keywords) - หมวดหมู่ค่าใช้จ่าย
+- `bills`: (id, branch_id, billing_date, source, is_smart_input) - หัวเอกสารหรือบิล
+- `expenses`: (id, branch_id, bill_id, category_id, entry_date, item_name, qty, unit, price_per_unit, total_amount) - รายการค่าใช้จ่าย (เชื่อมกับบิลและหมวดหมู่)
+- `income`: (id, branch_id, entry_date, amount, source, note) - รายการรายรับ
+
+2. เทคโนโลยีและโครงสร้างโปรเจกต์
+- Framework: Next.js 16 (App Router) + TypeScript
+- Backend: Supabase SDK (Client & Server)
+- PDF: `@react-pdf/renderer` (สร้างที่ฝั่ง Client)
+- Logic Placement: 
+  - การดึงข้อมูล/จัดการข้อมูล: `src/services/`
+  - การคำนวณยอดรวม/สรุปผล: `src/lib/calculations.ts`
+  - ประเภทข้อมูล: `src/types/` (รวมถึง Type ที่ Generate จาก Supabase)
+
+3. กฎการคำนวณและจัดการข้อมูล (Business Rules)
+- การกรองข้อมูล (Filtering): ทุกการ Query รายรับ (`income`) และรายจ่าย (`expenses`) ต้องมีเงื่อนไข `.eq('branch_id', ...)` เสมอ
+- การรวมยอด (Aggregation): การสรุปยอดรายเดือนเพื่อทำ PDF ให้ดึงข้อมูล `expenses` และ `income` ตามช่วงวันที่ (`entry_date`) แล้วนำมา Grouping ตาม `category_id` ที่ฝั่ง Application
+- ความแม่นยำ: คอลัมน์ประเภท `numeric` (amount, total_amount) ให้จัดการด้วยความระมัดระวังเรื่องทศนิยม
+
+4. มาตรฐานการเขียนโค้ด
+- UI: ใช้ Tailwind CSS (ภาษาไทยในส่วนแสดงผล)
+- Interactivity: ใช้ URL Query Params (`?branchId=...&month=...`) ในการจัดการ State ของการกรองข้อมูลหน้า Dashboard
+- Components: แยก Component ของฟอร์มบันทึก (`expenses`, `income`) ให้ชัดเจน และใช้ Server Actions สำหรับการ Save ข้อมูล
+
+5. ระบบการออกรายงาน PDF
+- Template อยู่ที่ `src/components/pdf/`
+- ต้องแสดงชื่อสาขา (จาก `branches.name`) และเดือนที่สรุปที่หัวกระดาษ
+- แสดงตารางสรุปรายจ่ายแยกตามหมวดหมู่ (`categories.name`) พร้อมยอดรวมสุทธิ
+
+6. คำแนะนำสำหรับ AI
+- อ้างอิงชื่อ Table และ Column ตามหัวข้อที่ 1 ทุกครั้ง
+- หากมีการบันทึกรายจ่ายใหม่ ต้องตรวจสอบว่า `bill_id` และ `category_id` มีอยู่จริงตามความสัมพันธ์ (Foreign Key)
+- หากสิ่งที่ prompt ลงไปเป็น requirement ใหม่ ให้ถามก่อนดำเนินการ และหากตกลงดำเนินการให้กลับมา update .cursorrules ให้เป็นปัจจุบัน
+- อ่าน TODO_AI.md ก่อนเริ่มงาน หากสิ่งที่เริ่มไม่สอดคล้องกับ TODO ให้ถามก่อนเสมอ

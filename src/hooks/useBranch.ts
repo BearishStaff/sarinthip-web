@@ -2,7 +2,7 @@
 
 import { IBranch } from "@/src/types/branch"
 import { useQuery } from '@tanstack/react-query'
-import { listBranches } from "@/src/repository/branchRepository";
+import { listBranches } from "@/src/services/branchService";
 
 export function useBranch() {
   const getBranches = async (): Promise<IBranch[]> => {

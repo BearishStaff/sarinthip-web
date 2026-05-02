@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { exportToPDF, ReportItem } from "../lib/exportUtils";
 import { useState } from "react";
 import { thaiMonths } from "../lib/utils";
-import {
-  getExpenseSummaryByCategory,
-  getExpensesByCategoryInRange,
-} from "../repository/expenseRepository";
+import { getExpensesByCategoryInRange, getExpenseSummaryByCategory } from "../services/expenseService";
+import { exportToPDF, DetailedExpenseItem } from "../lib/pdfExport";
+import { ReportItem } from "../lib/calculations";
 
 export function useMonthlyReport(branchId: string) {
 
@@ -85,44 +83,47 @@ export function useMonthlyReport(branchId: string) {
   const generateExpensePDF = async (
     categoryId: string
   ) => {
+    try {
+      const res = await getExpenseByCategory(categoryId);
+      const categoryName = res.expenses[0]?.category_name || 'อื่นๆ / ยังไม่ระบุ';
 
-    const res = await getExpenseByCategory(categoryId);
-    const categoryName = res.expenses[0]?.category_name || 'อื่นๆ / ยังไม่ระบุ';
+      // Transform expense data to ReportItem format for the PDF
+      const reportItems: ReportItem[] = [{
+        categoryId: categoryId,
+        name: categoryName,
+        total: res.categoryTotal
+      }];
 
-    const data = res.expenses.map((exp) => ({
-      date: new Date(exp.entry_date).toLocaleDateString('th-TH', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }),
-      item: exp.item_name,
-      qty: `${exp.qty} ${exp.unit}`,
-      price_per_unit: exp.price_per_unit.toLocaleString(),
-      total_amount: exp.total_amount.toLocaleString(),
-    }));
+      // Transform individual expense records to DetailedExpenseItem format
+      const detailedExpenses: DetailedExpenseItem[] = res.expenses.map(exp => ({
+        id: exp.id,
+        item_name: exp.item_name,
+        qty: exp.qty,
+        unit: exp.unit,
+        price_per_unit: exp.price_per_unit,
+        total_amount: exp.total_amount,
+        entry_date: exp.entry_date,
+        billing_date: exp.billing_date,
+        category_name: exp.category_name
+      }));
 
-    const totalAmount = data.reduce((sum, item) => sum + Number(item.total_amount.replaceAll(',', '')), 0);
-    const report = [...data, { item: 'รวม', total_amount: totalAmount.toLocaleString() }];
+      const branchName = "Srinathip 1"; // You can pass the real branch name here
+      const monthName = thaiMonths[month - 1];
+      const monthYearString = `${monthName} ${year}`;
 
-    const branchName = "Srinathip 1"; // You can pass the real branch name here
-
-    const branchColumns = [
-      { header: 'วันที่', dataKey: 'date' },
-      { header: 'รายการ', dataKey: 'item' },
-      { header: 'จำนวน', dataKey: 'qty' },
-      { header: 'ราคาต่อหน่วย(บาท)', dataKey: 'price_per_unit' },
-      { header: 'ราคารวม(บาท)', dataKey: 'total_amount' },
-    ];
-
-    const monthName = thaiMonths[month - 1];
-
-    exportToPDF({
-      title: `ใบรับรองแทนใบเสร็จ-${categoryName}-${monthName}-${year}`,
-      description: `สาขา ${branchName} - รายงานค่าใช้จ่ายประจำเดือน ${monthName} - ยอดรวม ${totalAmount} บาท`,
-      columns: branchColumns,
-      data: report,
-      keepGroupTogetherBy: 'date',
-    });
+      await exportToPDF({
+        title: `ใบรับรองแทนใบเสร็จ-${categoryName}-${monthName}-${year}`,
+        branchName: branchName,
+        month: monthYearString,
+        reportItems: reportItems,
+        totalExpenses: res.categoryTotal,
+        detailedExpenses: detailedExpenses, // Pass individual expense records
+      });
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      alert('ไม่สามารถสร้าง PDF ได้: ' + (error instanceof Error ? error.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'));
+      throw error;
+    }
   };
 
   return {
