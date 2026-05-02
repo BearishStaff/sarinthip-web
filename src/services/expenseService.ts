@@ -48,7 +48,8 @@ export async function getExpenseSummaryByCategory(
     `)
     .eq("bills.branch_id", branchId)
     .gte("bills.billing_date", startDate)
-    .lte("bills.billing_date", endDate);
+    .lte("bills.billing_date", endDate)
+    .order("category_id", { ascending: true });
 }
 
 export async function getExpensesByCategoryInRange(
@@ -57,7 +58,7 @@ export async function getExpensesByCategoryInRange(
   startDate: string,
   endDate: string
 ) {
-  return supabase
+  const query = supabase
     .from("expenses")
     .select(`
       id,
@@ -76,8 +77,14 @@ export async function getExpensesByCategoryInRange(
       categories (name)
     `)
     .eq("bills.branch_id", branchId)
-    .eq("category_id", categoryId)
     .gte("bills.billing_date", startDate)
     .lte("bills.billing_date", endDate)
     .order("entry_date", { ascending: true });
+
+  // Handle uncategorized expenses (category_id is null)
+  if (categoryId === 'uncategorized') {
+    return query.is("category_id", null);
+  } else {
+    return query.eq("category_id", categoryId);
+  }
 }

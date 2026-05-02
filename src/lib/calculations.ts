@@ -42,11 +42,11 @@ export function formatNumber(amount: number, decimals: number = 2): string {
  * สรุปยอดรายจ่ายตามหมวดหมู่
  */
 export function groupExpensesByCategory(expenses: any[]): ExpenseSummary[] {
-  const categoryMap = new Map<number, ExpenseSummary>();
+  const categoryMap = new Map<string | number, ExpenseSummary>();
   
   expenses.forEach(expense => {
-    const categoryId = expense.category_id;
-    const categoryName = expense.categories?.name || 'ไม่ระบุหมวดหมู่';
+    const categoryId = expense.category_id || 'uncategorized';
+    const categoryName = expense.categories?.name || 'อื่นๆ / ยังไม่ระบุ';
     const amount = parseFloat(expense.total_amount);
     
     if (categoryMap.has(categoryId)) {
@@ -55,7 +55,7 @@ export function groupExpensesByCategory(expenses: any[]): ExpenseSummary[] {
       existing.itemCount += 1;
     } else {
       categoryMap.set(categoryId, {
-        categoryId,
+        categoryId: typeof categoryId === 'number' ? categoryId : 0,
         categoryName,
         totalAmount: amount,
         itemCount: 1

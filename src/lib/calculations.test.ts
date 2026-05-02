@@ -95,7 +95,7 @@ describe('groupExpensesByCategory', () => {
     expect(result[1].itemCount).toBe(1);
     
     expect(result[2].categoryId).toBe(3);
-    expect(result[2].categoryName).toBe('ไม่ระบุหมวดหมู่');
+    expect(result[2].categoryName).toBe('อื่นๆ / ยังไม่ระบุ');
     expect(result[2].totalAmount).toBe(50);
     expect(result[2].itemCount).toBe(1);
   });
@@ -114,7 +114,7 @@ describe('groupExpensesByCategory', () => {
     ];
     
     const result = groupExpensesByCategory(expensesWithoutCategories);
-    expect(result[0].categoryName).toBe('ไม่ระบุหมวดหมู่');
+    expect(result[0].categoryName).toBe('อื่นๆ / ยังไม่ระบุ');
   });
 });
 
