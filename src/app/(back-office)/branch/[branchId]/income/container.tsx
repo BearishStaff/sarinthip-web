@@ -86,13 +86,14 @@ export default function InsertIncomeContainer({ branchId }: Readonly<Props>) {
             วันที่
           </label>
           <input
-            type="date"
-            name="entry_date"
-            value={formData.entry_date}
-            onChange={handleInputChange}
-            className={`w-full px-4 py-2 border ${appColorClasses.borderSoft} rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent ${appColorClasses.textPrimary}`}
-            required
-          />
+              type="date"
+              name="entry_date"
+              value={formData.entry_date}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-2 border ${appColorClasses.borderSoft} rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent ${appColorClasses.textPrimary} cursor-pointer`}
+              required
+              onClick={(e) => e.currentTarget.showPicker?.()}
+            />
         </div>
 
         {/* Amount Field */}
@@ -104,10 +105,19 @@ export default function InsertIncomeContainer({ branchId }: Readonly<Props>) {
           <input
             type="number"
             name="amount"
-            value={formData.amount}
-            onChange={handleInputChange}
-            step="0.01"
-            min="0"
+            value={formData.amount === 0 ? '' : formData.amount}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Allow only positive numbers with up to 2 decimal places
+              if (value === '' || value === '0' || value === '0.') {
+                handleInputChange(e);
+              } else {
+                const regex = /^\d*\.?\d{0,2}$/;
+                if (regex.test(value) && parseFloat(value) >= 0) {
+                  handleInputChange(e);
+                }
+              }
+            }}
             placeholder="0.00"
             className={`w-full px-4 py-2 border ${appColorClasses.borderSoft} rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent ${appColorClasses.textPrimary}`}
             required
