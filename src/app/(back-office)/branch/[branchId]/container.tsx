@@ -8,6 +8,7 @@ import {
   FileText,
   ChevronRight,
   TrendingUp,
+  TrendingDown,
   Calendar,
   Zap,
   Plus,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useExpense } from "@/src/hooks/useExpense";
+import { useIncome } from "@/src/hooks/useIncome";
 import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 import { thaiMonths } from "@/src/lib/utils";
 
@@ -44,8 +46,19 @@ export default function BranchDashboardContainer({
     year,
   );
 
+  const { data: incomeData, isLoading: isIncomeLoading } = useIncome(
+    branchId,
+    month,
+    year,
+  );
+
   // Use the grandTotal from our hook, or fallback to 0 while loading
-  const monthlyTotal = expenseData?.grandTotal ?? 0;
+  const monthlyExpenseTotal = expenseData?.grandTotal ?? 0;
+  const monthlyIncomeTotal = incomeData?.monthlyTotal ?? 0;
+  const profitLoss = monthlyIncomeTotal - monthlyExpenseTotal;
+  
+  // Combined loading state
+  const isAnyLoading = isLoading || isIncomeLoading;
 
   function onSelectBill(billId: string) {
     router.push(`/branch/${branchId}/bill/${billId}`);
@@ -79,7 +92,7 @@ export default function BranchDashboardContainer({
               id="branch-dashboard-month"
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
-              disabled={isLoading}
+              disabled={isAnyLoading}
               className={`w-full p-3 bg-surface rounded-2xl border ${appColorClasses.borderSubtle} focus:ring-2 focus:ring-brand-500 text-sm font-bold appearance-none disabled:opacity-60`}
             >
               {thaiMonths.map((name, i) => (
@@ -100,7 +113,7 @@ export default function BranchDashboardContainer({
               id="branch-dashboard-year"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              disabled={isLoading}
+              disabled={isAnyLoading}
               className={`w-full p-3 bg-surface rounded-2xl border ${appColorClasses.borderSubtle} focus:ring-2 focus:ring-brand-500 text-sm font-bold appearance-none disabled:opacity-60`}
             >
               {yearOptions.map((y) => (
@@ -112,21 +125,74 @@ export default function BranchDashboardContainer({
           </div>
         </div>
 
-        <div className="flex justify-between items-start mb-4">
+        {/* Expenses Row */}
+        <div className="flex justify-between items-start mb-3">
           <div className="space-y-1">
             <p className={`text-sm font-medium ${appColorClasses.textSecondary} uppercase tracking-wider`}>
               รายจ่ายรวมเดือนนี้
             </p>
-            <h2 className={`text-3xl font-black ${appColorClasses.textPrimary} min-h-9 flex items-center`}>
-              {isLoading ? (
-                <Loader2 className={`w-8 h-8 animate-spin ${appColorClasses.textMuted}`} />
+            <h3 className={`text-2xl font-black ${appColorClasses.textPrimary} min-h-8 flex items-center`}>
+              {isAnyLoading ? (
+                <Loader2 className={`w-6 h-6 animate-spin ${appColorClasses.textMuted}`} />
               ) : (
-                `฿${monthlyTotal.toLocaleString()}`
+                `฿${monthlyExpenseTotal.toLocaleString()}`
               )}
-            </h2>
+            </h3>
+          </div>
+          <div className={`${intentColorClasses.danger.bg} p-2 rounded-xl`}>
+            <TrendingDown className={`w-5 h-5 ${intentColorClasses.danger.text}`} />
+          </div>
+        </div>
+
+        {/* Income Row */}
+        <div className="flex justify-between items-start mb-3">
+          <div className="space-y-1">
+            <p className={`text-sm font-medium ${appColorClasses.textSecondary} uppercase tracking-wider`}>
+              รายรับรวมเดือนนี้
+            </p>
+            <h3 className={`text-2xl font-black ${appColorClasses.textPrimary} min-h-8 flex items-center`}>
+              {isAnyLoading ? (
+                <Loader2 className={`w-6 h-6 animate-spin ${appColorClasses.textMuted}`} />
+              ) : (
+                `฿${monthlyIncomeTotal.toLocaleString()}`
+              )}
+            </h3>
           </div>
           <div className={`${intentColorClasses.success.bg} p-2 rounded-xl`}>
             <TrendingUp className={`w-5 h-5 ${intentColorClasses.success.text}`} />
+          </div>
+        </div>
+
+        {/* Profit/Loss Row */}
+        <div className="flex justify-between items-start mb-4">
+          <div className="space-y-1">
+            <p className={`text-sm font-medium ${appColorClasses.textSecondary} uppercase tracking-wider`}>
+              กำไร/ขาดทุน
+            </p>
+            <h3 className={`text-2xl font-black min-h-8 flex items-center ${
+              profitLoss > 0 ? intentColorClasses.success.text : 
+              profitLoss < 0 ? intentColorClasses.danger.text : 
+              appColorClasses.textMuted
+            }`}>
+              {isAnyLoading ? (
+                <Loader2 className={`w-6 h-6 animate-spin ${appColorClasses.textMuted}`} />
+              ) : (
+                `${profitLoss >= 0 ? '+' : ''}฿${profitLoss.toLocaleString()}`
+              )}
+            </h3>
+          </div>
+          <div className={`p-2 rounded-xl ${
+            profitLoss > 0 ? intentColorClasses.success.bg : 
+            profitLoss < 0 ? intentColorClasses.danger.bg : 
+            appColorClasses.borderSoft
+          }`}>
+            {profitLoss > 0 ? (
+              <TrendingUp className={`w-5 h-5 ${intentColorClasses.success.text}`} />
+            ) : profitLoss < 0 ? (
+              <TrendingDown className={`w-5 h-5 ${intentColorClasses.danger.text}`} />
+            ) : (
+              <div className={`w-5 h-5 ${appColorClasses.textMuted}`} />
+            )}
           </div>
         </div>
 
@@ -162,6 +228,24 @@ export default function BranchDashboardContainer({
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-500" />
+        </Link>
+
+        <Link
+          href={`/branch/${branchId}/income`}
+          className={`flex items-center justify-between ${intentColorClasses.success.bg} ${intentColorClasses.success.text} p-5 rounded-2xl shadow-md hover:bg-green-600 hover:text-white transition-all active:scale-95`}
+        >
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-left">
+              <p className="font-bold text-lg">บันทึกรายรับ</p>
+              <p className="text-green-100 text-xs">
+                บันทึกรายรับเข้าสาขา
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-green-200" />
         </Link>
 
         <Link
