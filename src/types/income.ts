@@ -1,5 +1,5 @@
 export interface Income {
-  id: number;
+  id: string;
   branch_id: string;
   entry_date: string;
   amount: number;

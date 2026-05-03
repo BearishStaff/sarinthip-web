@@ -25,7 +25,7 @@ export async function getIncomeByBranchAndDateRange(
 }
 
 export async function updateIncomeById(
-  id: number,
+  id: string,
   data: {
     entry_date?: string;
     amount?: number;
@@ -36,6 +36,10 @@ export async function updateIncomeById(
   return supabase.from("income").update(data).eq("id", id);
 }
 
-export async function removeIncome(id: number) {
+export async function getIncomeById(id: string) {
+  return supabase.from("income").select("*").eq("id", id).single();
+}
+
+export async function removeIncome(id: string) {
   return supabase.from("income").delete().eq("id", id);
 }
