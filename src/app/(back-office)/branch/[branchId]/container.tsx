@@ -237,16 +237,16 @@ export default function BranchDashboardContainer({
         >
           <div className="flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-xl">
-              <TrendingUp className="w-6 h-6 text-white" />
+              <TrendingUp className="w-6 h-6" />
             </div>
             <div className="text-left">
               <p className="font-bold text-lg">บันทึกรายรับ</p>
-              <p className="text-green-100 text-xs">
+              <p className="text-xs">
                 บันทึกรายรับเข้าสาขา
               </p>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-green-200" />
+          <ChevronRight className="w-5 h-5" />
         </Link>
 
         <Link
