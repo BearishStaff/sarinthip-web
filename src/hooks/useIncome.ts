@@ -7,8 +7,10 @@ export function useIncome(branchId: string, month: number, year: number) {
   return useQuery({
     queryKey: ['income', branchId, month, year],
     queryFn: async () => {
-      const startDate = new Date(year, month - 1, 1).toISOString();
-      const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+      // Create date strings directly to avoid timezone issues
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`;
 
       const { data, error } = await getIncomeByBranchAndDateRange(
         branchId,

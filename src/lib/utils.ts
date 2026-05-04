@@ -4,31 +4,41 @@ export function convertThaiDateToISO(thaiDateStr: string): string {
   if (parts.length !== 3) return new Date().toISOString().split("T")[0];
 
   const day = Number.parseInt(parts[0], 10);
-  const month = Number.parseInt(parts[1], 10) - 1; // JS months are 0-11
+  const month = Number.parseInt(parts[1], 10);
   let year = Number.parseInt(parts[2], 10);
 
-  // Smart Detection:
-  // If year is 2569, it's BE -> convert to 2026
-  // If year is 2026, it's already AD -> keep as is
+  // Check for invalid values
+  if (isNaN(day) || isNaN(month) || isNaN(year)) {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  // Convert Thai BE year to AD if needed (but not for years < 2400)
   if (year > 2400) {
     year -= 543;
   }
 
-  const date = new Date(year, month, day);
-
-  // Basic validation: if date is invalid, fallback to today's date (YYYY-MM-DD)
-  if (
-    Number.isNaN(date.getTime()) ||
-    date.getFullYear() !== year ||
-    date.getMonth() !== month ||
-    date.getDate() !== day
-  ) {
+  // Basic validation
+  if (month < 1 || month > 12 || day < 1 || day > 31 || year === 0) {
     return new Date().toISOString().split("T")[0];
   }
 
-  const monthStr = String(date.getMonth() + 1).padStart(2, "0");
-  const dayStr = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${monthStr}-${dayStr}`;
+  // Check for valid days in month
+  const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  
+  // Check leap year for February
+  if (month === 2) {
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    if (day > (isLeapYear ? 29 : 28)) {
+      return new Date().toISOString().split("T")[0];
+    }
+  } else if (day > daysInMonth[month - 1]) {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  // Create ISO string directly (no timezone conversion)
+  const monthStr = String(month).padStart(2, "0");
+  const dayStr = String(day).padStart(2, "0");
+  return `${year}-${monthStr}-${dayStr}`;
 }
 
 export const thaiMonths = [
