@@ -10,6 +10,16 @@ import {
 import { ReportItem } from '@/src/lib/calculations';
 import { DetailedExpenseItem } from '@/src/lib/pdfExport';
 
+// Constants for page layout calculations
+const PAGE_HEIGHT = 842; // A4 height in points
+const PAGE_MARGIN = 60; // Top + bottom margins
+const HEADER_HEIGHT = 120; // Approximate header height
+const FOOTER_HEIGHT = 50; // Approximate footer height
+const TABLE_HEADER_HEIGHT = 40; // Table header height
+const DATE_HEADER_HEIGHT = 30; // Date header height
+const ROW_HEIGHT = 25; // Approximate row height
+const AVAILABLE_HEIGHT = PAGE_HEIGHT - PAGE_MARGIN - HEADER_HEIGHT - FOOTER_HEIGHT;
+
 // ลงทะเบียนฟอนต์ภาษาไทย
 Font.register({
   family: 'Sarabun',
@@ -177,105 +187,178 @@ export const ExpenseReportPDF: React.FC<ExpenseReportPDFProps> = ({
       }));
   };
 
+  // Split date groups into pages
+  const splitIntoPages = (dateGroups: { date: string; items: DetailedExpenseItem[] }[]) => {
+    const pages: { dateGroups: { date: string; items: DetailedExpenseItem[] }[] }[] = [];
+    let currentPage: { dateGroups: { date: string; items: DetailedExpenseItem[] }[] } = { dateGroups: [] };
+    let currentHeight = TABLE_HEADER_HEIGHT;
+
+    for (const dateGroup of dateGroups) {
+      const dateGroupHeight = DATE_HEADER_HEIGHT + (dateGroup.items.length * ROW_HEIGHT);
+      
+      // If this date group doesn't fit on current page, start a new page
+      if (currentHeight + dateGroupHeight > AVAILABLE_HEIGHT && currentPage.dateGroups.length > 0) {
+        pages.push(currentPage);
+        currentPage = { dateGroups: [dateGroup] };
+        currentHeight = TABLE_HEADER_HEIGHT + dateGroupHeight;
+      } else {
+        currentPage.dateGroups.push(dateGroup);
+        currentHeight += dateGroupHeight;
+      }
+    }
+
+    // Add the last page if it has content
+    if (currentPage.dateGroups.length > 0) {
+      pages.push(currentPage);
+    }
+
+    return pages;
+  };
+
+  // Split data into pages
+  const dateGroups = detailedExpenses && detailedExpenses.length > 0 
+    ? groupExpensesByDate(detailedExpenses) 
+    : [];
+  const pages = splitIntoPages(dateGroups);
+
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.section}>
-          <Text style={styles.title}>รายงานสรุปค่าใช้จ่ายรายเดือน</Text>
-          <Text style={styles.subtitle}>สาขา: {branchName}</Text>
-          <Text style={styles.subtitle}>ประจำเดือน {formatDate(month)}</Text>
-        </View>
+      {detailedExpenses && detailedExpenses.length > 0 ? (
+        // Multiple pages for detailed expenses
+        pages.map((page, pageIndex) => (
+          <Page key={pageIndex} size="A4" style={styles.page}>
+            {/* Header */}
+            <View style={styles.section}>
+              <Text style={styles.title}>รายงานสรุปค่าใช้จ่ายรายเดือน</Text>
+              <Text style={styles.subtitle}>สาขา: {branchName}</Text>
+              <Text style={styles.subtitle}>ประจำเดือน {formatDate(month)}</Text>
+              {pages.length > 1 && (
+                <Text style={styles.subtitle}>หน้า {pageIndex + 1} จาก {pages.length}</Text>
+              )}
+            </View>
 
-        {/* Detailed Expense Breakdown */}
-        {detailedExpenses && detailedExpenses.length > 0 && (
-          <View style={styles.section}>
-            <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
-              รายละเอียดค่าใช้จ่ายแยกตามวัน
-            </Text>
-            
-            {/* Detailed Table Header */}
-            <View style={styles.tableHeader}>
-              <View style={[styles.tableCell, styles.dateCell]}>
-                <Text>วันที่</Text>
-              </View>
-              <View style={[styles.tableCell, styles.itemNameCell]}>
-                <Text>รายการ</Text>
-              </View>
-              <View style={[styles.tableCell, styles.qtyCell]}>
-                <Text>จำนวน</Text>
-              </View>
-              <View style={[styles.tableCell, styles.unitCell]}>
-                <Text>หน่วย</Text>
-              </View>
-              <View style={[styles.tableCell, styles.priceCell]}>
-                <Text>ราคา/หน่วย</Text>
-              </View>
-              <View style={[styles.tableCell, styles.totalCell]}>
-                <Text>จำนวนเงิน</Text>
-              </View>
-            </View>
-            
-            {/* Group expenses by date and display */}
-            {groupExpensesByDate(detailedExpenses).map((dateGroup, dateIndex) => (
-              <View key={dateIndex}>
-                {/* Date Header */}
-                <View style={styles.dateHeader}>
-                  <Text>{formatThaiDate(dateGroup.date)}</Text>
+            {/* Detailed Expense Breakdown */}
+            <View style={styles.section}>
+              <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
+                รายละเอียดค่าใช้จ่ายแยกตามวัน
+              </Text>
+              
+              {/* Detailed Table Header */}
+              <View style={styles.tableHeader}>
+                <View style={[styles.tableCell, styles.dateCell]}>
+                  <Text>วันที่</Text>
                 </View>
-                
-                {/* Expense items for this date */}
-                {dateGroup.items.map((expense, itemIndex) => (
-                  <View key={expense.id} style={styles.tableRow}>
-                    <View style={[styles.tableCell, styles.dateCell]}>
-                      <Text></Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.itemNameCell]}>
-                      <Text>{expense.item_name}</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.qtyCell]}>
-                      <Text>{expense.qty}</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.unitCell]}>
-                      <Text>{expense.unit}</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.priceCell]}>
-                      <Text>{formatCurrency(expense.price_per_unit)}</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.totalCell]}>
-                      <Text>{formatCurrency(expense.total_amount)}</Text>
-                    </View>
+                <View style={[styles.tableCell, styles.itemNameCell]}>
+                  <Text>รายการ</Text>
+                </View>
+                <View style={[styles.tableCell, styles.qtyCell]}>
+                  <Text>จำนวน</Text>
+                </View>
+                <View style={[styles.tableCell, styles.unitCell]}>
+                  <Text>หน่วย</Text>
+                </View>
+                <View style={[styles.tableCell, styles.priceCell]}>
+                  <Text>ราคา/หน่วย</Text>
+                </View>
+                <View style={[styles.tableCell, styles.totalCell]}>
+                  <Text>จำนวนเงิน</Text>
+                </View>
+              </View>
+              
+              {/* Group expenses by date for this page */}
+              {page.dateGroups.map((dateGroup, dateIndex) => (
+                <View key={dateIndex}>
+                  {/* Date Header */}
+                  <View style={styles.dateHeader}>
+                    <Text>{formatThaiDate(dateGroup.date)}</Text>
                   </View>
-                ))}
-              </View>
-            ))}
-            
-            {/* Grand Total */}
-            <View style={[styles.tableRow, styles.summaryRow]}>
-              <View style={[styles.tableCell, styles.dateCell]}>
-                <Text>รวมทั้งหมด</Text>
-              </View>
-              <View style={[styles.tableCell, styles.itemNameCell]}>
-                <Text></Text>
-              </View>
-              <View style={[styles.tableCell, styles.qtyCell]}>
-                <Text></Text>
-              </View>
-              <View style={[styles.tableCell, styles.unitCell]}>
-                <Text></Text>
-              </View>
-              <View style={[styles.tableCell, styles.priceCell]}>
-                <Text></Text>
-              </View>
-              <View style={[styles.tableCell, styles.totalCell]}>
-                <Text>{formatCurrency(totalExpenses)}</Text>
-              </View>
+                  
+                  {/* Expense items for this date */}
+                  {dateGroup.items.map((expense, itemIndex) => (
+                    <View key={expense.id} style={styles.tableRow}>
+                      <View style={[styles.tableCell, styles.dateCell]}>
+                        <Text></Text>
+                      </View>
+                      <View style={[styles.tableCell, styles.itemNameCell]}>
+                        <Text>{expense.item_name}</Text>
+                      </View>
+                      <View style={[styles.tableCell, styles.qtyCell]}>
+                        <Text>{expense.qty}</Text>
+                      </View>
+                      <View style={[styles.tableCell, styles.unitCell]}>
+                        <Text>{expense.unit}</Text>
+                      </View>
+                      <View style={[styles.tableCell, styles.priceCell]}>
+                        <Text>{formatCurrency(expense.price_per_unit)}</Text>
+                      </View>
+                      <View style={[styles.tableCell, styles.totalCell]}>
+                        <Text>{formatCurrency(expense.total_amount)}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ))}
+              
+              {/* Grand Total - only on last page */}
+              {pageIndex === pages.length - 1 && (
+                <View style={[styles.tableRow, styles.summaryRow]}>
+                  <View style={[styles.tableCell, styles.dateCell]}>
+                    <Text>รวมทั้งหมด</Text>
+                  </View>
+                  <View style={[styles.tableCell, styles.itemNameCell]}>
+                    <Text></Text>
+                  </View>
+                  <View style={[styles.tableCell, styles.qtyCell]}>
+                    <Text></Text>
+                  </View>
+                  <View style={[styles.tableCell, styles.unitCell]}>
+                    <Text></Text>
+                  </View>
+                  <View style={[styles.tableCell, styles.priceCell]}>
+                    <Text></Text>
+                  </View>
+                  <View style={[styles.tableCell, styles.totalCell]}>
+                    <Text>{formatCurrency(totalExpenses)}</Text>
+                  </View>
+                </View>
+              )}
             </View>
+
+            {/* Income Summary (if available) - only on last page */}
+            {totalIncome > 0 && pageIndex === pages.length - 1 && (
+              <View style={styles.section}>
+                <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
+                  สรุปรายรับ
+                </Text>
+                <View style={[styles.tableRow, styles.summaryRow]}>
+                  <View style={[styles.tableCell, styles.categoryName]}>
+                    <Text>รวมรายรับทั้งหมด</Text>
+                  </View>
+                  <View style={[styles.tableCell, styles.amountCell]}>
+                    <Text>{formatCurrency(totalIncome)}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Footer */}
+            <Text style={styles.footer}>
+              รายงานนี้จัดทำเมื่อ {new Date().toLocaleDateString('th-TH')} | 
+              ระบบบัญชีรายรับ-รายจ่ายแยกสาขา
+            </Text>
+          </Page>
+        ))
+      ) : (
+        // Single page for summary view
+        <Page size="A4" style={styles.page}>
+          {/* Header */}
+          <View style={styles.section}>
+            <Text style={styles.title}>รายงานสรุปค่าใช้จ่ายรายเดือน</Text>
+            <Text style={styles.subtitle}>สาขา: {branchName}</Text>
+            <Text style={styles.subtitle}>ประจำเดือน {formatDate(month)}</Text>
           </View>
-        )}
-        
-        {/* Fallback: Show simple summary if no detailed data */}
-        {(!detailedExpenses || detailedExpenses.length === 0) && (
+
+          {/* Fallback: Show simple summary if no detailed data */}
           <View style={styles.section}>
             <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
               สรุปค่าใช้จ่ายแยกตามหมวดหมู่
@@ -313,31 +396,31 @@ export const ExpenseReportPDF: React.FC<ExpenseReportPDFProps> = ({
               </View>
             </View>
           </View>
-        )}
 
-        {/* Income Summary (if available) */}
-        {totalIncome > 0 && (
-          <View style={styles.section}>
-            <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
-              สรุปรายรับ
-            </Text>
-            <View style={[styles.tableRow, styles.summaryRow]}>
-              <View style={[styles.tableCell, styles.categoryName]}>
-                <Text>รวมรายรับทั้งหมด</Text>
-              </View>
-              <View style={[styles.tableCell, styles.amountCell]}>
-                <Text>{formatCurrency(totalIncome)}</Text>
+          {/* Income Summary (if available) */}
+          {totalIncome > 0 && (
+            <View style={styles.section}>
+              <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
+                สรุปรายรับ
+              </Text>
+              <View style={[styles.tableRow, styles.summaryRow]}>
+                <View style={[styles.tableCell, styles.categoryName]}>
+                  <Text>รวมรายรับทั้งหมด</Text>
+                </View>
+                <View style={[styles.tableCell, styles.amountCell]}>
+                  <Text>{formatCurrency(totalIncome)}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {/* Footer */}
-        <Text style={styles.footer}>
-          รายงานนี้จัดทำเมื่อ {new Date().toLocaleDateString('th-TH')} | 
-          ระบบบัญชีรายรับ-รายจ่ายแยกสาขา
-        </Text>
-      </Page>
+          {/* Footer */}
+          <Text style={styles.footer}>
+            รายงานนี้จัดทำเมื่อ {new Date().toLocaleDateString('th-TH')} | 
+            ระบบบัญชีรายรับ-รายจ่ายแยกสาขา
+          </Text>
+        </Page>
+      )}
     </Document>
   );
 };
