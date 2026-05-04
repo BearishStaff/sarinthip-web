@@ -12,6 +12,29 @@ export async function createBranch(name: string) {
   return supabase.from("branches").insert([{ name }]).select();
 }
 
+export async function updateBranch(branchId: string, name: string) {
+  return supabase.from("branches").update({ name }).eq("id", branchId).select();
+}
+
+export async function checkBranchNameExists(name: string, excludeBranchId?: string) {
+  let query = supabase
+    .from("branches")
+    .select("id")
+    .eq("name", name)
+    .is("deleted_at", null)
+    .limit(1);
+
+  if (excludeBranchId) {
+    query = query.neq("id", excludeBranchId);
+  }
+
+  const { data, error } = await query;
+  
+  if (error) return { error, exists: false };
+  
+  return { exists: data && data.length > 0 };
+}
+
 export async function softDeleteBranch(branchId: string) {
   return supabase.from("branches").update({ deleted_at: new Date().toISOString() }).eq("id", branchId);
 }

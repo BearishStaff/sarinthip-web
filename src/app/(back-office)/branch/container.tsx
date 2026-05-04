@@ -1,16 +1,26 @@
 "use client";
 
 import React, { useState } from "react";
-import { LoaderIcon, Plus, Store, Trash2, MoreVertical } from "lucide-react"; // ไอคอนสำหรับ UI
+import { LoaderIcon, Plus, Store, Trash2, MoreVertical, Edit } from "lucide-react"; // ไอคอนสำหรับ UI
 import Link from "next/link";
 import { useBranch } from "@/src/hooks/useBranch";
 import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 import AddBranchForm from "@/src/components/addBranchForm";
 import DeleteBranchDialog from "@/src/components/DeleteBranchDialog";
+import EditBranchDialog from "@/src/components/EditBranchDialog";
 
 export default function HomeContainer() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    branchId: string;
+    branchName: string;
+  }>({
+    isOpen: false,
+    branchId: "",
+    branchName: "",
+  });
+  const [editDialog, setEditDialog] = useState<{
     isOpen: boolean;
     branchId: string;
     branchName: string;
@@ -44,21 +54,40 @@ export default function HomeContainer() {
                 key={branch.id}
                 className={`group relative ${appColorClasses.cardBg} border ${appColorClasses.borderSoft} rounded-2xl p-6 flex flex-col items-center justify-center transition-all ${intentColorClasses.brand.borderStrong.replace("border-", "hover:border-")} hover:shadow-md active:scale-95`}
               >
-                {/* Delete Button */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setDeleteDialog({
-                      isOpen: true,
-                      branchId: branch.id,
-                      branchName: branch.name,
-                    });
-                  }}
-                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-50 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100"
-                  title="ลบสาขา"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Action Buttons */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Edit Button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setEditDialog({
+                        isOpen: true,
+                        branchId: branch.id,
+                        branchName: branch.name,
+                      });
+                    }}
+                    className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    title="แก้ไขชื่อสาขา"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setDeleteDialog({
+                        isOpen: true,
+                        branchId: branch.id,
+                        branchName: branch.name,
+                      });
+                    }}
+                    className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
+                    title="ลบสาขา"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
 
                 {/* Branch Link */}
                 <Link
@@ -123,6 +152,18 @@ export default function HomeContainer() {
         branchName={deleteDialog.branchName}
         isOpen={deleteDialog.isOpen}
         onClose={() => setDeleteDialog({ ...deleteDialog, isOpen: false })}
+        onSuccess={() => {
+          // The useBranch hook will automatically refetch the data
+          // due to revalidation in the server action
+        }}
+      />
+
+      {/* Edit Branch Dialog */}
+      <EditBranchDialog
+        branchId={editDialog.branchId}
+        branchName={editDialog.branchName}
+        isOpen={editDialog.isOpen}
+        onClose={() => setEditDialog({ ...editDialog, isOpen: false })}
         onSuccess={() => {
           // The useBranch hook will automatically refetch the data
           // due to revalidation in the server action
