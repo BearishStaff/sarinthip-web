@@ -5,6 +5,7 @@ create table public.branches (
   id uuid not null default gen_random_uuid (),
   name text not null,
   created_at timestamp with time zone null default now(),
+  deleted_at timestamp with time zone null,
   constraint branches_pkey primary key (id)
 ) TABLESPACE pg_default;
 

@@ -1,17 +1,24 @@
 "use client";
 
 import React, { useState } from "react";
-import { LoaderIcon, Plus, Store } from "lucide-react"; // ไอคอนสำหรับ UI
+import { LoaderIcon, Plus, Store, Trash2, MoreVertical } from "lucide-react"; // ไอคอนสำหรับ UI
 import Link from "next/link";
 import { useBranch } from "@/src/hooks/useBranch";
 import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
-
-function handleAddBranch() {
-  console.log("add branch");
-}
+import AddBranchForm from "@/src/components/addBranchForm";
+import DeleteBranchDialog from "@/src/components/DeleteBranchDialog";
 
 export default function HomeContainer() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    branchId: string;
+    branchName: string;
+  }>({
+    isOpen: false,
+    branchId: "",
+    branchName: "",
+  });
   const { branchesData, isLoading } = useBranch();
 
   return (
@@ -33,18 +40,39 @@ export default function HomeContainer() {
           {/* Branch Grid */}
           <div className="w-full max-w-md grid grid-cols-2 gap-4">
             {branchesData?.map((branch) => (
-              <Link
+              <div
                 key={branch.id}
-                href={`/branch/${branch.id}`} // ไปที่หน้า Dashboard ของสาขานั้นๆ
                 className={`group relative ${appColorClasses.cardBg} border ${appColorClasses.borderSoft} rounded-2xl p-6 flex flex-col items-center justify-center transition-all ${intentColorClasses.brand.borderStrong.replace("border-", "hover:border-")} hover:shadow-md active:scale-95`}
               >
-                <div className={`w-14 h-14 ${intentColorClasses.brand.bg} rounded-full flex items-center justify-center mb-3 group-hover:bg-brand-100`}>
-                  <Store className={`${intentColorClasses.brand.text} w-7 h-7`} />
-                </div>
-                <span className={`font-semibold ${appColorClasses.textPrimary} text-center`}>
-                  {branch.name}
-                </span>
-              </Link>
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setDeleteDialog({
+                      isOpen: true,
+                      branchId: branch.id,
+                      branchName: branch.name,
+                    });
+                  }}
+                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-50 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100"
+                  title="ลบสาขา"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+
+                {/* Branch Link */}
+                <Link
+                  href={`/branch/${branch.id}`} // ไปที่หน้า Dashboard ของสาขานั้นๆ
+                  className="flex flex-col items-center justify-center w-full h-full"
+                >
+                  <div className={`w-14 h-14 ${intentColorClasses.brand.bg} rounded-full flex items-center justify-center mb-3 group-hover:bg-brand-100`}>
+                    <Store className={`${intentColorClasses.brand.text} w-7 h-7`} />
+                  </div>
+                  <span className={`font-semibold ${appColorClasses.textPrimary} text-center`}>
+                    {branch.name}
+                  </span>
+                </Link>
+              </div>
             ))}
 
             {/* Add Branch Button */}
@@ -66,37 +94,18 @@ export default function HomeContainer() {
                 <h2 className={`text-xl font-bold text-center ${appColorClasses.textPrimary} tracking-tight`}>
                   เพิ่มสาขาใหม่
                 </h2>
-                <form onSubmit={handleAddBranch} className="space-y-6">
+                <div className="space-y-6">
                   <div className="space-y-2 text-center">
                     {/* ไอคอน + ในวงกลมตาม Wireframe */}
                     <div className={`mx-auto w-20 h-20 border-2 ${appColorClasses.borderSoft} rounded-full flex items-center justify-center bg-surface mb-4`}>
                       <Plus className={`${appColorClasses.textMuted} w-10 h-10`} />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="ระบุชื่อสาขา"
-                      value={""}
-                      onChange={() => {}}
-                      className="w-full px-4 py-3 rounded-xl border border-border-soft focus:outline-none focus:ring-2 focus:ring-brand-500 text-center text-lg"
-                      autoFocus
-                    />
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <button
-                      type="submit"
-                      className={`w-full bg-text-primary text-white py-3 rounded-xl font-semibold hover:bg-foreground transition-colors`}
-                    >
-                      ยืนยัน
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className={`w-full bg-card ${appColorClasses.textSecondary} py-3 rounded-xl font-medium border ${appColorClasses.borderSubtle} hover:bg-surface transition-colors`}
-                    >
-                      ยกเลิก
-                    </button>
-                  </div>
-                </form>
+                  <AddBranchForm 
+                    onSuccess={() => setShowAddModal(false)}
+                    onCancel={() => setShowAddModal(false)}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -107,6 +116,18 @@ export default function HomeContainer() {
       <footer className={`mt-auto py-8 ${appColorClasses.textMuted} text-sm italic`}>
         Backend Managed by Supabase
       </footer>
+
+      {/* Delete Branch Dialog */}
+      <DeleteBranchDialog
+        branchId={deleteDialog.branchId}
+        branchName={deleteDialog.branchName}
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ ...deleteDialog, isOpen: false })}
+        onSuccess={() => {
+          // The useBranch hook will automatically refetch the data
+          // due to revalidation in the server action
+        }}
+      />
     </div>
   );
 }

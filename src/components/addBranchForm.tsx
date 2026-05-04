@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { addBranch } from "../actions/branchActions";
 
-export default function AddBranchForm() {
+interface AddBranchFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export default function AddBranchForm({ onSuccess, onCancel }: AddBranchFormProps) {
   const [message, setMessage] = useState("");
 
   async function clientAction(formData: FormData) {
@@ -13,31 +18,47 @@ export default function AddBranchForm() {
       setMessage(`❌ ${result.error}`);
     } else {
       setMessage("✅ Branch added successfully!");
-      // Optionally reset the form here
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     }
   }
 
   return (
-    <form action={clientAction} className="space-y-4 p-4 border rounded-lg">
-      <div>
-        <label className="block text-sm font-medium">Branch Name</label>
-        <input
-          name="name"
-          type="text"
-          placeholder="e.g., Sukhumvit Branch"
-          className="w-full p-2 border rounded"
-          required
-        />
-      </div>
-      
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Save Branch
-      </button>
+    <div className="space-y-4">
+      <form action={clientAction} className="space-y-4">
+        <div>
+          <input
+            name="name"
+            type="text"
+            placeholder="ระบุชื่อสาขา"
+            className="w-full px-4 py-3 rounded-xl border border-border-soft focus:outline-none focus:ring-2 focus:ring-brand-500 text-center text-lg text-black"
+            required
+            autoFocus
+          />
+        </div>
+        
+        <div className="flex flex-col gap-3">
+          <button
+            type="submit"
+            className="w-full bg-text-primary text-white py-3 rounded-xl font-semibold hover:bg-foreground transition-colors"
+          >
+            ยืนยัน
+          </button>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="w-full bg-card text-text-primary py-3 rounded-xl font-medium border border-border-subtle hover:bg-surface transition-colors"
+            >
+              ยกเลิก
+            </button>
+          )}
+        </div>
+      </form>
 
-      {message && <p className="text-sm mt-2">{message}</p>}
-    </form>
+      {message && <p className="text-sm mt-2 text-center">{message}</p>}
+    </div>
   );
 }
