@@ -4,7 +4,8 @@ export async function createIncome(data: {
   branch_id: string;
   entry_date: string;
   amount: number;
-  source: string;
+  channel: string;
+  gp_rate: number;
   note?: string;
 }) {
   return supabase.from("income").insert([data]).select().single();
@@ -29,7 +30,8 @@ export async function updateIncomeById(
   data: {
     entry_date?: string;
     amount?: number;
-    source?: string;
+    channel?: string;
+    gp_rate?: number;
     note?: string;
   }
 ) {

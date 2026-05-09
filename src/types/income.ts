@@ -3,23 +3,25 @@ export interface Income {
   branch_id: string;
   entry_date: string;
   amount: number;
-  source: string;
+  channel: string;
+  gp_rate: number;
   note?: string;
   created_at?: string;
-  updated_at?: string;
 }
 
 export interface CreateIncomeData {
   branch_id: string;
   entry_date: string;
   amount: number;
-  source: string;
+  channel: string;
+  gp_rate: number;
   note?: string;
 }
 
 export interface UpdateIncomeData {
   entry_date?: string;
   amount?: number;
-  source?: string;
+  channel?: string;
+  gp_rate?: number;
   note?: string;
 }

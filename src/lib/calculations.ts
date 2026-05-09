@@ -10,6 +10,10 @@ export interface ExpenseSummary {
 export interface MonthlySummary {
   month: string;
   totalExpenses: number;
+  totalGrossIncome: number;
+  totalGpDeduction: number;
+  totalNetIncome: number;
+  /** @deprecated use totalNetIncome */
   totalIncome: number;
   netAmount: number;
   expensesByCategory: ExpenseSummary[];
@@ -79,19 +83,28 @@ export function calculateMonthlySummary(
     return sum + parseFloat(expense.total_amount || 0);
   }, 0);
   
-  // คำนวณยอดรวมรายรับ
-  const totalIncome = income.reduce((sum, item) => {
+  // คำนวณยอดรวมรายรับ (gross และ net หลังหัก GP)
+  const totalGrossIncome = income.reduce((sum, item) => {
     return sum + parseFloat(item.amount || 0);
   }, 0);
-  
+  const totalGpDeduction = income.reduce((sum, item) => {
+    const gross = parseFloat(item.amount || 0);
+    const gpRate = parseFloat(item.gp_rate || 0);
+    return sum + gross * gpRate;
+  }, 0);
+  const totalNetIncome = totalGrossIncome - totalGpDeduction;
+
   // จัดกลุ่มรายจ่ายตามหมวดหมู่
   const expensesByCategory = groupExpensesByCategory(expenses);
-  
+
   return {
     month,
     totalExpenses: formatDecimal(totalExpenses),
-    totalIncome: formatDecimal(totalIncome),
-    netAmount: formatDecimal(totalIncome - totalExpenses),
+    totalGrossIncome: formatDecimal(totalGrossIncome),
+    totalGpDeduction: formatDecimal(totalGpDeduction),
+    totalNetIncome: formatDecimal(totalNetIncome),
+    totalIncome: formatDecimal(totalNetIncome),
+    netAmount: formatDecimal(totalNetIncome - totalExpenses),
     expensesByCategory: expensesByCategory.map(item => ({
       ...item,
       totalAmount: formatDecimal(item.totalAmount)
@@ -147,7 +160,10 @@ export function prepareDashboardData(
     branchName,
     selectedMonth,
     totalExpenses: summary.totalExpenses,
-    totalIncome: summary.totalIncome,
+    totalGrossIncome: summary.totalGrossIncome,
+    totalGpDeduction: summary.totalGpDeduction,
+    totalNetIncome: summary.totalNetIncome,
+    totalIncome: summary.totalNetIncome,
     netAmount: summary.netAmount,
     expensesByCategory: summary.expensesByCategory,
     expenseCount: expenses.length,

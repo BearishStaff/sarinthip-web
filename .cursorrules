@@ -12,7 +12,9 @@ AI ต้องยึดตาม Schema ของ Supabase ต่อไปน�
 - Framework: Next.js 16 (App Router) + TypeScript
 - Backend: Supabase SDK (Client & Server)
 - PDF: `@react-pdf/renderer` (สร้างที่ฝั่ง Client)
-- Logic Placement: 
+- Deployment: Vercel (Serverless / Edge Runtime)
+- Stack constraint: มีเพียง Next.js และ Supabase เท่านั้นที่ขับเคลื่อนแอปพลิเคชันนี้ — ไม่มี backend server แยกต่างหาก, Docker, หรือ third-party service อื่น
+- Logic Placement:
   - การดึงข้อมูล/จัดการข้อมูล: `src/services/`
   - การคำนวณยอดรวม/สรุปผล: `src/lib/calculations.ts`
   - ประเภทข้อมูล: `src/types/` (รวมถึง Type ที่ Generate จาก Supabase)
@@ -37,3 +39,4 @@ AI ต้องยึดตาม Schema ของ Supabase ต่อไปน�
 - หากมีการบันทึกรายจ่ายใหม่ ต้องตรวจสอบว่า `bill_id` และ `category_id` มีอยู่จริงตามความสัมพันธ์ (Foreign Key)
 - หากสิ่งที่ prompt ลงไปเป็น requirement ใหม่ ให้ถามก่อนดำเนินการ และหากตกลงดำเนินการให้กลับมา update .cursorrules ให้เป็นปัจจุบัน
 - อ่าน TODO_AI.md ก่อนเริ่มงาน หากสิ่งที่เริ่มไม่สอดคล้องกับ TODO ให้ถามก่อนเสมอ
+- โปรเจกต์นี้ Deploy บน Vercel เท่านั้น ห้ามแนะนำ solution ที่ต้องใช้ custom server, Docker, หรือ third-party backend ที่ไม่ใช่ Supabase

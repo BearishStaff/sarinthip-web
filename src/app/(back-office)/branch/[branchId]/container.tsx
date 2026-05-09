@@ -55,8 +55,11 @@ export default function BranchDashboardContainer({
 
   // Use the grandTotal from our hook, or fallback to 0 while loading
   const monthlyExpenseTotal = expenseData?.grandTotal ?? 0;
-  const monthlyIncomeTotal = incomeData?.monthlyTotal ?? 0;
-  const profitLoss = monthlyIncomeTotal - monthlyExpenseTotal;
+  const monthlyGrossIncome = incomeData?.monthlyGrossTotal ?? 0;
+  const monthlyGpDeduction = incomeData?.monthlyGpDeduction ?? 0;
+  const monthlyNetIncome = incomeData?.monthlyNetTotal ?? 0;
+  const monthlyIncomeTotal = monthlyNetIncome;
+  const profitLoss = monthlyNetIncome - monthlyExpenseTotal;
   
   // Combined loading state
   const isAnyLoading = isLoading || isIncomeLoading;
@@ -145,22 +148,49 @@ export default function BranchDashboardContainer({
           </div>
         </div>
 
-        {/* Income Row */}
-        <div className="flex justify-between items-start mb-3">
-          <div className="space-y-1">
+        {/* Income Rows */}
+        <div className="mb-3 space-y-2">
+          {/* Gross income */}
+          <div className="flex justify-between items-center">
             <p className={`text-sm font-medium ${appColorClasses.textSecondary} uppercase tracking-wider`}>
-              รายรับรวมเดือนนี้
+              รายรับรวม (Gross)
             </p>
-            <h3 className={`text-2xl font-black ${appColorClasses.textPrimary} min-h-8 flex items-center`}>
+            <span className={`text-lg font-bold ${appColorClasses.textPrimary}`}>
               {isAnyLoading ? (
-                <Loader2 className={`w-6 h-6 animate-spin ${appColorClasses.textMuted}`} />
+                <Loader2 className={`w-5 h-5 animate-spin ${appColorClasses.textMuted}`} />
               ) : (
-                `฿${monthlyIncomeTotal.toLocaleString()}`
+                `฿${monthlyGrossIncome.toLocaleString()}`
               )}
-            </h3>
+            </span>
           </div>
-          <div className={`${intentColorClasses.success.bg} p-2 rounded-xl`}>
-            <TrendingUp className={`w-5 h-5 ${intentColorClasses.success.text}`} />
+          {/* GP deduction — only shown when non-zero */}
+          {(!isAnyLoading && monthlyGpDeduction > 0) && (
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium text-amber-600 uppercase tracking-wider">
+                หัก GP
+              </p>
+              <span className="text-base font-semibold text-amber-600">
+                −฿{monthlyGpDeduction.toLocaleString()}
+              </span>
+            </div>
+          )}
+          {/* Net income */}
+          <div className="flex justify-between items-start">
+            <div className="space-y-0.5">
+              <p className={`text-sm font-medium ${appColorClasses.textSecondary} uppercase tracking-wider`}>
+                รายรับสุทธิ (Net)
+              </p>
+              <h3 className={`text-2xl font-black ${intentColorClasses.success.text} min-h-8 flex items-center`}>
+                {isAnyLoading ? (
+                  <Loader2 className={`w-6 h-6 animate-spin ${appColorClasses.textMuted}`} />
+                ) : (
+                  `฿${monthlyNetIncome.toLocaleString()}`
+                )}
+              </h3>
+            </div>
+            <div className={`${intentColorClasses.success.bg} p-2 rounded-xl`}>
+              <TrendingUp className={`w-5 h-5 ${intentColorClasses.success.text}`} />
+            </div>
           </div>
         </div>
 
@@ -399,9 +429,16 @@ export default function BranchDashboardContainer({
                     </div>
 
                     <div className="flex flex-col">
-                      <span className={`font-semibold ${appColorClasses.textPrimary} text-sm group-hover:text-green-700 transition-colors`}>
-                        {income.source}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`font-semibold ${appColorClasses.textPrimary} text-sm group-hover:text-green-700 transition-colors`}>
+                          {income.channel ?? income.source ?? '-'}
+                        </span>
+                        {Number(income.gp_rate) > 0 && (
+                          <span className="text-[9px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
+                            GP {Number(income.gp_rate) * 100}%
+                          </span>
+                        )}
+                      </div>
                       <span className={`text-[10px] ${appColorClasses.textMuted}`}>
                         {new Date(income.entry_date).toLocaleDateString("th-TH")}
                       </span>
@@ -410,9 +447,20 @@ export default function BranchDashboardContainer({
 
                   <div className="flex items-center gap-2">
                     <div className="text-right">
-                      <span className={`font-bold text-green-700 block`}>
-                        ฿{Number(income.amount).toLocaleString()}
-                      </span>
+                      {Number(income.gp_rate) > 0 ? (
+                        <>
+                          <span className={`font-bold text-green-700 block`}>
+                            ฿{(Number(income.amount) * (1 - Number(income.gp_rate))).toLocaleString()}
+                          </span>
+                          <span className={`text-[10px] ${appColorClasses.textMuted} line-through`}>
+                            ฿{Number(income.amount).toLocaleString()}
+                          </span>
+                        </>
+                      ) : (
+                        <span className={`font-bold text-green-700 block`}>
+                          ฿{Number(income.amount).toLocaleString()}
+                        </span>
+                      )}
                       <span className={`text-[10px] ${appColorClasses.textMuted} uppercase tracking-tighter`}>
                         {income.note ? 'มีหมายเหตุ' : ''}
                       </span>
