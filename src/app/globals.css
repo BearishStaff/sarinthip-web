@@ -62,3 +62,36 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ─── POC Amber Design Tokens ─── */
+.poc-page {
+  --poc-bg: #faf8f4;
+  --poc-surface: #ffffff;
+  --poc-surface2: #f3f0ea;
+  --poc-border: #e8e3d8;
+  --poc-border2: #d4cec0;
+  --poc-ink: #1a1714;
+  --poc-ink2: #5a5550;
+  --poc-ink3: #9a9590;
+  --poc-amber: #d97706;
+  --poc-amber-light: #fef3c7;
+  --poc-amber-bg: #fffbf0;
+  --poc-green: #059669;
+  --poc-green-light: #d1fae5;
+  --poc-red: #dc2626;
+  --poc-red-light: #fee2e2;
+  --poc-blue: #2563eb;
+  --poc-blue-light: #dbeafe;
+  --poc-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+}
+
+@media print {
+  body * { visibility: hidden !important; }
+  .poc-receipt-print-area, .poc-receipt-print-area * { visibility: visible !important; }
+  .poc-receipt-print-area {
+    position: fixed !important;
+    left: 0; top: 0;
+    width: 210mm;
+    min-height: 297mm;
+  }
+}
