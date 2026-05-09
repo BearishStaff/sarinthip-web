@@ -6,51 +6,54 @@ import { ArrowLeft, TrendingUp, Calendar, DollarSign, FileText } from "lucide-re
 import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 import { CreateIncomeData } from "@/src/types/income";
 import { createIncomeAction } from "@/src/actions/incomeActions";
+import { INCOME_CHANNELS, calcNetAmount, calcGpDeduction } from "@/src/lib/incomeChannels";
 
 interface Props {
   branchId: string;
 }
 
+const DEFAULT_CHANNEL = INCOME_CHANNELS[0];
+
 export default function InsertIncomeContainer({ branchId }: Readonly<Props>) {
   const router = useRouter();
-  
+
   const [formData, setFormData] = useState<CreateIncomeData>({
     branch_id: branchId,
     entry_date: new Date().toISOString().split('T')[0],
     amount: 0,
-    source: '',
+    channel: DEFAULT_CHANNEL.name,
+    gp_rate: DEFAULT_CHANNEL.gpRate,
     note: ''
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
     }));
   };
 
+  const handleChannelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const ch = INCOME_CHANNELS.find(c => c.name === e.target.value) ?? DEFAULT_CHANNEL;
+    setFormData(prev => ({ ...prev, channel: ch.name, gp_rate: ch.gpRate }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.source.trim()) {
-      alert('กรุณาระบุแหล่งที่มาของรายรับ');
-      return;
-    }
-    
+
     if (formData.amount <= 0) {
       alert('กรุณาระบุจำนวนเงินที่ถูกต้อง');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const result = await createIncomeAction(formData);
-      
+
       if (result.success) {
         router.push(`/branch/${branchId}`);
         router.refresh();
@@ -63,6 +66,10 @@ export default function InsertIncomeContainer({ branchId }: Readonly<Props>) {
       setIsSubmitting(false);
     }
   };
+
+  const gpDeduction = calcGpDeduction(formData.amount, formData.gp_rate);
+  const netAmount = calcNetAmount(formData.amount, formData.gp_rate);
+  const hasGp = formData.gp_rate > 0 && formData.amount > 0;
 
   return (
     <div className={`min-h-screen ${appColorClasses.pageBg} flex flex-col items-center p-4 md:p-6 font-sans`}>
@@ -86,21 +93,40 @@ export default function InsertIncomeContainer({ branchId }: Readonly<Props>) {
             วันที่
           </label>
           <input
-              type="date"
-              name="entry_date"
-              value={formData.entry_date}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-2 border ${appColorClasses.borderSoft} rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent ${appColorClasses.textPrimary} cursor-pointer`}
-              required
-              onClick={(e) => e.currentTarget.showPicker?.()}
-            />
+            type="date"
+            name="entry_date"
+            value={formData.entry_date}
+            onChange={handleInputChange}
+            className={`w-full px-4 py-2 border ${appColorClasses.borderSoft} rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent ${appColorClasses.textPrimary} cursor-pointer`}
+            required
+            onClick={(e) => e.currentTarget.showPicker?.()}
+          />
+        </div>
+
+        {/* Channel Field */}
+        <div>
+          <label className={`block text-sm font-medium ${appColorClasses.textSecondary} mb-2`}>
+            <TrendingUp className="inline w-4 h-4 mr-1" />
+            ช่องทางรายรับ
+          </label>
+          <select
+            value={formData.channel}
+            onChange={handleChannelChange}
+            className={`w-full px-4 py-2 border ${appColorClasses.borderSoft} rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent ${appColorClasses.textPrimary} bg-white`}
+          >
+            {INCOME_CHANNELS.map(ch => (
+              <option key={ch.name} value={ch.name}>
+                {ch.name}{ch.gpRate > 0 ? ` (GP ${ch.gpRate * 100}%)` : ''}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Amount Field */}
         <div>
           <label className={`block text-sm font-medium ${appColorClasses.textSecondary} mb-2`}>
             <DollarSign className="inline w-4 h-4 mr-1" />
-            จำนวนเงิน
+            ยอดรายรับ (ก่อนหัก GP)
           </label>
           <input
             type="number"
@@ -108,7 +134,6 @@ export default function InsertIncomeContainer({ branchId }: Readonly<Props>) {
             value={formData.amount === 0 ? '' : formData.amount}
             onChange={(e) => {
               const value = e.target.value;
-              // Allow only positive numbers with up to 2 decimal places
               if (value === '' || value === '0' || value === '0.') {
                 handleInputChange(e);
               } else {
@@ -124,22 +149,23 @@ export default function InsertIncomeContainer({ branchId }: Readonly<Props>) {
           />
         </div>
 
-        {/* Source Field */}
-        <div>
-          <label className={`block text-sm font-medium ${appColorClasses.textSecondary} mb-2`}>
-            <TrendingUp className="inline w-4 h-4 mr-1" />
-            แหล่งที่มา
-          </label>
-          <input
-            type="text"
-            name="source"
-            value={formData.source}
-            onChange={handleInputChange}
-            placeholder="เช่น ขายสินค้า, ค่าบริการ, ดอกเบี้ย"
-            className={`w-full px-4 py-2 border ${appColorClasses.borderSoft} rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent ${appColorClasses.textPrimary}`}
-            required
-          />
-        </div>
+        {/* GP Preview */}
+        {hasGp && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span className={appColorClasses.textSecondary}>ยอดรวม</span>
+              <span className={appColorClasses.textPrimary}>฿{formData.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-amber-700">หัก GP {formData.gp_rate * 100}%</span>
+              <span className="text-amber-700">−฿{gpDeduction.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className={`flex justify-between font-bold border-t border-amber-200 pt-1 ${intentColorClasses.success.text}`}>
+              <span>รายรับสุทธิ</span>
+              <span>฿{netAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+        )}
 
         {/* Note Field */}
         <div>

@@ -28,7 +28,8 @@ export async function updateIncomeAction(id: string, data: CreateIncomeData) {
     const { data: result, error } = await updateIncomeById(id, {
       entry_date: data.entry_date,
       amount: data.amount,
-      source: data.source,
+      channel: data.channel,
+      gp_rate: data.gp_rate,
       note: data.note
     });
     

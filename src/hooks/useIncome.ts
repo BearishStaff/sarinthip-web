@@ -7,7 +7,6 @@ export function useIncome(branchId: string, month: number, year: number) {
   return useQuery({
     queryKey: ['income', branchId, month, year],
     queryFn: async () => {
-      // Create date strings directly to avoid timezone issues
       const startDate = `${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`;
       const lastDay = new Date(year, month, 0).getDate();
       const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`;
@@ -20,12 +19,18 @@ export function useIncome(branchId: string, month: number, year: number) {
 
       if (error) throw error;
 
-      // Calculate monthly income total
-      const monthlyTotal = data.reduce((sum, income) => sum + Number(income.amount), 0);
+      const monthlyGrossTotal = data.reduce((sum, item) => sum + Number(item.amount), 0);
+      const monthlyGpDeduction = data.reduce((sum, item) => {
+        return sum + Number(item.amount) * Number(item.gp_rate ?? 0);
+      }, 0);
+      const monthlyNetTotal = monthlyGrossTotal - monthlyGpDeduction;
 
       return {
         incomeRecords: data,
-        monthlyTotal,
+        monthlyGrossTotal,
+        monthlyGpDeduction,
+        monthlyNetTotal,
+        monthlyTotal: monthlyNetTotal,
       };
     },
     enabled: !!branchId,
