@@ -299,6 +299,25 @@ export default function BranchDashboardContainer({
           <ChevronRight className={`w-5 h-5 ${appColorClasses.textMuted}`} />
         </Link>
 
+        <Link
+          href={`/branch/${branchId}/poc`}
+          className="flex items-center justify-between p-5 rounded-2xl shadow-sm transition-all active:scale-95 border"
+          style={{ background: "#fffbf0", borderColor: "#f0d080", color: "#92400e" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl" style={{ background: "#fef3c7" }}>
+              <Zap className="w-6 h-6" style={{ color: "#d97706" }} />
+            </div>
+            <div className="text-left">
+              <p className="font-bold text-lg">POC Design</p>
+              <p className="text-xs" style={{ color: "#a16207" }}>
+                กรอกรายจ่าย / ประวัติ / ใบแทนฯ
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5" style={{ color: "#d97706" }} />
+        </Link>
+
         <Link href="/categories">
           <div className="bg-linear-to-br from-brand-500 to-brand-600 p-6 rounded-3xl text-white shadow-lg shadow-brand-100 flex justify-between items-center group cursor-pointer">
             <div>
