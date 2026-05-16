@@ -19,11 +19,12 @@ export interface PDFExportConfig {
   title: string;
   branchName: string;
   month: string;
+  categoryName?: string;
   reportItems: ReportItem[];
   totalExpenses: number;
   totalIncome?: number;
   netAmount?: number;
-  detailedExpenses?: DetailedExpenseItem[]; // New field for individual expense records
+  detailedExpenses?: DetailedExpenseItem[];
 }
 
 export const exportToPDF = async (config: PDFExportConfig): Promise<void> => {
