@@ -24,15 +24,17 @@ export function useMonthlyReport(branchId: string) {
 
       if (error) throw error;
 
-      // Grouping logic
-      const report = data.reduce((acc: Record<string, ReportItem>, curr: any) => {
-        const catName = curr.categories?.name || 'อื่นๆ / ยังไม่ระบุ';
-        const catId = curr.category_id || 'uncategorized';
+      // Flatten bills → expenses and group by category
+      const report = (data as any[]).reduce((acc: Record<string, ReportItem>, bill: any) => {
+        (bill.expenses || []).forEach((curr: any) => {
+          const catName = curr.categories?.name || 'อื่นๆ / ยังไม่ระบุ';
+          const catId = curr.category_id || 'uncategorized';
 
-        if (!acc[catId]) {
-          acc[catId] = { categoryId: catId, name: catName, total: 0 };
-        }
-        acc[catId].total += curr.total_amount;
+          if (!acc[catId]) {
+            acc[catId] = { categoryId: catId, name: catName, total: 0 };
+          }
+          acc[catId].total += curr.total_amount;
+        });
         return acc;
       }, {});
 
@@ -53,17 +55,20 @@ export function useMonthlyReport(branchId: string) {
 
     if (error) throw error;
 
-    const formattedData = data.map((exp: any) => ({
-      id: exp.id,
-      item_name: exp.item_name,
-      qty: exp.qty,
-      unit: exp.unit,
-      price_per_unit: exp.price_per_unit,
-      total_amount: exp.total_amount,
-      entry_date: exp.entry_date,
-      billing_date: exp.bills?.billing_date,
-      category_name: exp.categories?.name || 'อื่นๆ / ยังไม่ระบุ',
-    }));
+    // Flatten bills → expenses; billing_date comes from the parent bill
+    const formattedData = (data as any[]).flatMap((bill: any) =>
+      (bill.expenses || []).map((exp: any) => ({
+        id: exp.id,
+        item_name: exp.item_name,
+        qty: exp.qty,
+        unit: exp.unit,
+        price_per_unit: exp.price_per_unit,
+        total_amount: exp.total_amount,
+        entry_date: exp.entry_date,
+        billing_date: bill.billing_date,
+        category_name: exp.categories?.name || 'อื่นๆ / ยังไม่ระบุ',
+      }))
+    );
 
     const categoryTotal = formattedData.reduce(
       (sum, exp) => sum + Number(exp.total_amount), 0

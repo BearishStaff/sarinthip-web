@@ -39,17 +39,17 @@ export async function getExpenseSummaryByCategory(
   endDate: string
 ) {
   return supabase
-    .from("expenses")
+    .from("bills")
     .select(`
-      total_amount,
-      category_id,
-      categories (name),
-      bills!inner (branch_id, billing_date)
+      expenses (
+        total_amount,
+        category_id,
+        categories (name)
+      )
     `)
-    .eq("bills.branch_id", branchId)
-    .gte("bills.billing_date", startDate)
-    .lte("bills.billing_date", endDate)
-    .order("category_id", { ascending: true });
+    .eq("branch_id", branchId)
+    .gte("billing_date", startDate)
+    .lte("billing_date", endDate);
 }
 
 export async function getExpensesByCategoryInRange(
@@ -58,33 +58,30 @@ export async function getExpensesByCategoryInRange(
   startDate: string,
   endDate: string
 ) {
-  const query = supabase
-    .from("expenses")
+  const baseQuery = supabase
+    .from("bills")
     .select(`
-      id,
-      item_name,
-      qty,
-      unit,
-      price_per_unit,
-      total_amount,
-      entry_date,
-      category_id,
-      bills!inner (
+      billing_date,
+      expenses!inner (
         id,
-        billing_date,
-        branch_id
-      ),
-      categories (name)
+        item_name,
+        qty,
+        unit,
+        price_per_unit,
+        total_amount,
+        entry_date,
+        category_id,
+        categories (name)
+      )
     `)
-    .eq("bills.branch_id", branchId)
-    .gte("bills.billing_date", startDate)
-    .lte("bills.billing_date", endDate)
-    .order("entry_date", { ascending: true });
+    .eq("branch_id", branchId)
+    .gte("billing_date", startDate)
+    .lte("billing_date", endDate)
+    .order("billing_date", { ascending: true });
 
-  // Handle uncategorized expenses (category_id is null)
   if (categoryId === 'uncategorized') {
-    return query.is("category_id", null);
+    return baseQuery.is("expenses.category_id", null);
   } else {
-    return query.eq("category_id", categoryId);
+    return baseQuery.eq("expenses.category_id", categoryId);
   }
 }
