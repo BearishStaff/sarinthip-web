@@ -10,11 +10,19 @@ export function useMonthlyReport(branchId: string) {
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
 
+  const buildDateRange = (y: number, m: number) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const daysInMonth = new Date(y, m, 0).getDate();
+    return {
+      startDate: `${y}-${pad(m)}-01`,
+      endDate: `${y}-${pad(m)}-${pad(daysInMonth)}`,
+    };
+  };
+
   const { data: summaryByCategoryReportData, isLoading: isReportLoading, isError: isReportError } = useQuery<ReportItem[]>({
     queryKey: ['report', branchId, month, year],
     queryFn: async () => {
-      const startDate = new Date(year, month - 1, 1).toISOString();
-      const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+      const { startDate, endDate } = buildDateRange(year, month);
 
       const { data, error } = await getExpenseSummaryByCategory(
         branchId,
@@ -41,8 +49,7 @@ export function useMonthlyReport(branchId: string) {
   });
 
   const getExpenseByCategory = async (categoryId: string) => {
-    const startDate = new Date(year, month - 1, 1).toISOString();
-    const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+    const { startDate, endDate } = buildDateRange(year, month);
 
     const { data, error } = await getExpensesByCategoryInRange(
       branchId,
@@ -61,7 +68,6 @@ export function useMonthlyReport(branchId: string) {
       price_per_unit: exp.price_per_unit,
       total_amount: exp.total_amount,
       entry_date: exp.entry_date,
-      billing_date: exp.bills?.billing_date,
       category_name: exp.categories?.name || 'อื่นๆ / ยังไม่ระบุ',
     }));
 
@@ -102,7 +108,6 @@ export function useMonthlyReport(branchId: string) {
         price_per_unit: exp.price_per_unit,
         total_amount: exp.total_amount,
         entry_date: exp.entry_date,
-        billing_date: exp.billing_date,
         category_name: exp.category_name
       }));
 
