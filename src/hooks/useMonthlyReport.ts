@@ -68,6 +68,7 @@ export function useMonthlyReport(branchId: string) {
       price_per_unit: exp.price_per_unit,
       total_amount: exp.total_amount,
       entry_date: exp.entry_date,
+      billing_date: exp.bills?.billing_date,
       category_name: exp.categories?.name || 'อื่นๆ / ยังไม่ระบุ',
     }));
 

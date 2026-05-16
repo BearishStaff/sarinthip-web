@@ -43,11 +43,12 @@ export async function getExpenseSummaryByCategory(
     .select(`
       total_amount,
       category_id,
-      categories (name)
+      categories (name),
+      bills!inner (branch_id, billing_date)
     `)
-    .eq("branch_id", branchId)
-    .gte("entry_date", startDate)
-    .lte("entry_date", endDate)
+    .eq("bills.branch_id", branchId)
+    .gte("bills.billing_date", startDate)
+    .lte("bills.billing_date", endDate)
     .order("category_id", { ascending: true });
 }
 
@@ -68,13 +69,19 @@ export async function getExpensesByCategoryInRange(
       total_amount,
       entry_date,
       category_id,
+      bills!inner (
+        id,
+        billing_date,
+        branch_id
+      ),
       categories (name)
     `)
-    .eq("branch_id", branchId)
-    .gte("entry_date", startDate)
-    .lte("entry_date", endDate)
+    .eq("bills.branch_id", branchId)
+    .gte("bills.billing_date", startDate)
+    .lte("bills.billing_date", endDate)
     .order("entry_date", { ascending: true });
 
+  // Handle uncategorized expenses (category_id is null)
   if (categoryId === 'uncategorized') {
     return query.is("category_id", null);
   } else {
