@@ -667,7 +667,7 @@ function ReceiptTab({ branchId, branchName }: { branchId: string; branchName: st
     if (!preview || exportingPDF) return;
     setExportingPDF(true);
     try {
-      await generateExpensePDF(preview.id);
+      await generateExpensePDF(preview.id, branchName);
     } finally {
       setExportingPDF(false);
     }

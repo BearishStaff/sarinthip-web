@@ -9,13 +9,14 @@ import { appColorClasses, intentColorClasses } from "@/src/lib/colors";
 
 type Props = {
   branchId: string;
+  branchName: string;
 };
 
 function isLineApp() {
   return /Line/i.test(navigator.userAgent);
 }
 
-export default function ExportReportContainer({ branchId }: Readonly<Props>) {
+export default function ExportReportContainer({ branchId, branchName }: Readonly<Props>) {
   const {
     reportData,
     generateExpensePDF,
@@ -48,7 +49,7 @@ export default function ExportReportContainer({ branchId }: Readonly<Props>) {
       globalThis.location.href =
         "intent://your-app-url#Intent;scheme=https;end";
     } else {
-      generateExpensePDF(categoryId);
+      generateExpensePDF(categoryId, branchName);
     }
   };
 
