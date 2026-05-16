@@ -39,17 +39,17 @@ export async function getExpenseSummaryByCategory(
   endDate: string
 ) {
   return supabase
-    .from("bills")
+    .from("expenses")
     .select(`
-      expenses (
-        total_amount,
-        category_id,
-        categories (name)
-      )
+      total_amount,
+      category_id,
+      categories (name),
+      bills!inner (branch_id, billing_date)
     `)
-    .eq("branch_id", branchId)
-    .gte("billing_date", startDate)
-    .lte("billing_date", endDate);
+    .eq("bills.branch_id", branchId)
+    .gte("bills.billing_date", startDate)
+    .lte("bills.billing_date", endDate)
+    .order("category_id", { ascending: true });
 }
 
 export async function getExpensesByCategoryInRange(
@@ -58,30 +58,33 @@ export async function getExpensesByCategoryInRange(
   startDate: string,
   endDate: string
 ) {
-  const baseQuery = supabase
-    .from("bills")
+  const query = supabase
+    .from("expenses")
     .select(`
-      billing_date,
-      expenses!inner (
+      id,
+      item_name,
+      qty,
+      unit,
+      price_per_unit,
+      total_amount,
+      entry_date,
+      category_id,
+      bills!inner (
         id,
-        item_name,
-        qty,
-        unit,
-        price_per_unit,
-        total_amount,
-        entry_date,
-        category_id,
-        categories (name)
-      )
+        billing_date,
+        branch_id
+      ),
+      categories (name)
     `)
-    .eq("branch_id", branchId)
-    .gte("billing_date", startDate)
-    .lte("billing_date", endDate)
-    .order("billing_date", { ascending: true });
+    .eq("bills.branch_id", branchId)
+    .gte("bills.billing_date", startDate)
+    .lte("bills.billing_date", endDate)
+    .order("entry_date", { ascending: true });
 
+  // Handle uncategorized expenses (category_id is null)
   if (categoryId === 'uncategorized') {
-    return baseQuery.is("expenses.category_id", null);
+    return query.is("category_id", null);
   } else {
-    return baseQuery.eq("expenses.category_id", categoryId);
+    return query.eq("category_id", categoryId);
   }
 }
