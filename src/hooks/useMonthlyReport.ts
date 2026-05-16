@@ -81,20 +81,19 @@ export function useMonthlyReport(branchId: string) {
 
 
   const generateExpensePDF = async (
-    categoryId: string
+    categoryId: string,
+    branchName?: string
   ) => {
     try {
       const res = await getExpenseByCategory(categoryId);
       const categoryName = res.expenses[0]?.category_name || 'อื่นๆ / ยังไม่ระบุ';
 
-      // Transform expense data to ReportItem format for the PDF
       const reportItems: ReportItem[] = [{
         categoryId: categoryId,
         name: categoryName,
         total: res.categoryTotal
       }];
 
-      // Transform individual expense records to DetailedExpenseItem format
       const detailedExpenses: DetailedExpenseItem[] = res.expenses.map(exp => ({
         id: exp.id,
         item_name: exp.item_name,
@@ -107,17 +106,17 @@ export function useMonthlyReport(branchId: string) {
         category_name: exp.category_name
       }));
 
-      const branchName = "Srinathip 1"; // You can pass the real branch name here
       const monthName = thaiMonths[month - 1];
       const monthYearString = `${monthName} ${year}`;
 
       await exportToPDF({
         title: `ใบรับรองแทนใบเสร็จ-${categoryName}-${monthName}-${year}`,
-        branchName: branchName,
+        branchName: branchName ?? '',
         month: monthYearString,
+        categoryName: categoryName,
         reportItems: reportItems,
         totalExpenses: res.categoryTotal,
-        detailedExpenses: detailedExpenses, // Pass individual expense records
+        detailedExpenses: detailedExpenses,
       });
     } catch (error) {
       console.error('PDF Export Error:', error);

@@ -1,26 +1,24 @@
 import React from 'react';
-import { 
-  Document, 
-  Page, 
-  Text, 
-  View, 
-  StyleSheet, 
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
   Font
 } from '@react-pdf/renderer';
 import { ReportItem } from '@/src/lib/calculations';
 import { DetailedExpenseItem } from '@/src/lib/pdfExport';
 
-// Constants for page layout calculations
-const PAGE_HEIGHT = 842; // A4 height in points
-const PAGE_MARGIN = 60; // Top + bottom margins
-const HEADER_HEIGHT = 120; // Approximate header height
-const FOOTER_HEIGHT = 50; // Approximate footer height
-const TABLE_HEADER_HEIGHT = 40; // Table header height
-const DATE_HEADER_HEIGHT = 30; // Date header height
-const ROW_HEIGHT = 25; // Approximate row height
-const AVAILABLE_HEIGHT = PAGE_HEIGHT - PAGE_MARGIN - HEADER_HEIGHT - FOOTER_HEIGHT;
+const PAGE_HEIGHT = 842;
+const PAGE_MARGIN = 60;
+const HEADER_HEIGHT = 110;
+const TABLE_HEADER_HEIGHT = 30;
+const DATE_HEADER_HEIGHT = 25;
+const ROW_HEIGHT = 22;
+const SIGNATURE_HEIGHT = 70;
+const AVAILABLE_HEIGHT = PAGE_HEIGHT - PAGE_MARGIN - HEADER_HEIGHT - TABLE_HEADER_HEIGHT - SIGNATURE_HEIGHT;
 
-// ลงทะเบียนฟอนต์ภาษาไทย
 Font.register({
   family: 'Sarabun',
   src: '/font/Sarabun/Sarabun-Regular.ttf'
@@ -28,7 +26,7 @@ Font.register({
 
 Font.register({
   family: 'Sarabun-Bold',
-  src: '/font/Sarabun/Sarabun-Regular.ttf' // Use regular font for bold since bold version doesn't exist
+  src: '/font/Sarabun/Sarabun-Regular.ttf'
 });
 
 const styles = StyleSheet.create({
@@ -36,99 +34,131 @@ const styles = StyleSheet.create({
     fontFamily: 'Sarabun',
     fontSize: 12,
     padding: 30,
-    lineHeight: 1.5
+    lineHeight: 1.4
   },
-  title: {
-    fontFamily: 'Sarabun-Bold',
-    fontSize: 18,
-    marginBottom: 10,
-    textAlign: 'center'
-  },
-  subtitle: {
-    fontSize: 14,
-    marginBottom: 20,
+  // Header
+  header: {
     textAlign: 'center',
-    color: '#666'
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
+    paddingBottom: 8,
+    marginBottom: 10
   },
-  section: {
-    marginBottom: 20
-  },
-  tableHeader: {
+  branchName: {
     fontFamily: 'Sarabun-Bold',
-    backgroundColor: '#f0f0f0',
-    padding: 8,
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd'
+    fontSize: 17,
+    color: '#1a1714'
+  },
+  receiptTitle: {
+    fontFamily: 'Sarabun-Bold',
+    fontSize: 14,
+    marginTop: 3
+  },
+  headerSub: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 2
+  },
+  pageNumber: {
+    fontSize: 10,
+    color: '#999',
+    marginTop: 2
+  },
+  // Table wrapper — provides left + top outer border
+  tableWrapper: {
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderColor: '#000'
   },
   tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd'
+    flexDirection: 'row'
   },
-  tableCell: {
-    padding: 8,
+  // Each cell provides right + bottom border
+  cell: {
     borderRightWidth: 1,
-    borderRightColor: '#ddd'
-  },
-  categoryName: {
-    flex: 3
-  },
-  amountCell: {
-    flex: 2,
-    textAlign: 'right'
-  },
-  dateCell: {
-    flex: 2
-  },
-  itemNameCell: {
-    flex: 4
-  },
-  qtyCell: {
-    flex: 1,
-    textAlign: 'center'
-  },
-  unitCell: {
-    flex: 2,
-    textAlign: 'center'
-  },
-  priceCell: {
-    flex: 2,
-    textAlign: 'right'
-  },
-  totalCell: {
-    flex: 2,
-    textAlign: 'right'
-  },
-  dateHeader: {
-    fontFamily: 'Sarabun-Bold',
-    backgroundColor: '#f8f8f8',
-    padding: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    marginTop: 15,
-    marginBottom: 5
+    borderColor: '#000',
+    padding: '5 8',
+    fontSize: 12
   },
-  summaryRow: {
+  headerCell: {
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#000',
+    padding: '5 8',
+    fontSize: 11,
     fontFamily: 'Sarabun-Bold',
-    backgroundColor: '#f9f9f9',
-    borderTopWidth: 2,
-    borderTopColor: '#333'
+    backgroundColor: '#f5f5f5',
+    textAlign: 'center'
   },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    fontSize: 10,
-    textAlign: 'center',
-    color: '#666'
+  // Column widths
+  colItem: { flex: 4 },
+  colQty: { flex: 1, textAlign: 'center' },
+  colUnit: { flex: 2, textAlign: 'center' },
+  colPrice: { flex: 2, textAlign: 'right' },
+  colTotal: { flex: 2, textAlign: 'right' },
+  // Date spanning row (flex: 1 takes full width)
+  dateRow: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#000',
+    padding: '5 8',
+    backgroundColor: '#f8f8f8',
+    fontSize: 11,
+    fontFamily: 'Sarabun-Bold'
+  },
+  // Summary row
+  summaryLabel: {
+    flex: 9,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#000',
+    borderTopWidth: 2,
+    borderTopColor: '#333',
+    padding: '5 8',
+    fontFamily: 'Sarabun-Bold',
+    textAlign: 'right',
+    backgroundColor: '#f0f0f0'
+  },
+  summaryAmount: {
+    flex: 2,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#000',
+    borderTopWidth: 2,
+    borderTopColor: '#333',
+    padding: '5 8',
+    fontFamily: 'Sarabun-Bold',
+    textAlign: 'right',
+    backgroundColor: '#f0f0f0'
+  },
+  // Signature
+  signatureRow: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: 28
+  },
+  signatureBlock: {
+    flex: 1,
+    borderTopWidth: 1,
+    borderTopColor: '#000',
+    paddingTop: 6,
+    alignItems: 'center'
+  },
+  signatureSpace: {
+    fontSize: 12,
+    marginBottom: 20
+  },
+  signatureLabel: {
+    fontSize: 12
   }
 });
 
 interface ExpenseReportPDFProps {
   branchName: string;
   month: string;
+  categoryName?: string;
   reportItems: ReportItem[];
   totalExpenses: number;
   totalIncome?: number;
@@ -139,27 +169,15 @@ interface ExpenseReportPDFProps {
 export const ExpenseReportPDF: React.FC<ExpenseReportPDFProps> = ({
   branchName,
   month,
-  reportItems,
+  categoryName,
   totalExpenses,
-  totalIncome = 0,
-  netAmount = 0,
   detailedExpenses = []
 }) => {
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('th-TH', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) + ' บาท';
-  };
-
-  const formatDate = (dateString: string) => {
-    // The month string is already in the correct format (e.g., "มกราคม 2026")
-    // No need to parse it as a Date, just return it directly
-    return dateString;
-  };
+  const fmt = (n: number) =>
+    n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const formatThaiDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('th-TH', {
       day: 'numeric',
       month: 'long',
@@ -167,260 +185,116 @@ export const ExpenseReportPDF: React.FC<ExpenseReportPDFProps> = ({
     });
   };
 
-  // Group expenses by date
   const groupExpensesByDate = (expenses: DetailedExpenseItem[]) => {
     const grouped = expenses.reduce((acc, expense) => {
-      const date = expense.entry_date.split('T')[0]; // Get date part only
-      if (!acc[date]) {
-        acc[date] = [];
-      }
+      const date = expense.entry_date.split('T')[0];
+      if (!acc[date]) acc[date] = [];
       acc[date].push(expense);
       return acc;
     }, {} as Record<string, DetailedExpenseItem[]>);
 
-    // Sort dates and return as array
     return Object.entries(grouped)
       .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-      .map(([date, items]) => ({
-        date,
-        items: items.sort((a, b) => a.item_name.localeCompare(b.item_name))
-      }));
+      .map(([date, items]) => ({ date, items }));
   };
 
-  // Split date groups into pages
   const splitIntoPages = (dateGroups: { date: string; items: DetailedExpenseItem[] }[]) => {
     const pages: { dateGroups: { date: string; items: DetailedExpenseItem[] }[] }[] = [];
     let currentPage: { dateGroups: { date: string; items: DetailedExpenseItem[] }[] } = { dateGroups: [] };
-    let currentHeight = TABLE_HEADER_HEIGHT;
+    let currentHeight = 0;
 
     for (const dateGroup of dateGroups) {
-      const dateGroupHeight = DATE_HEADER_HEIGHT + (dateGroup.items.length * ROW_HEIGHT);
-      
-      // If this date group doesn't fit on current page, start a new page
+      const dateGroupHeight = DATE_HEADER_HEIGHT + dateGroup.items.length * ROW_HEIGHT;
       if (currentHeight + dateGroupHeight > AVAILABLE_HEIGHT && currentPage.dateGroups.length > 0) {
         pages.push(currentPage);
         currentPage = { dateGroups: [dateGroup] };
-        currentHeight = TABLE_HEADER_HEIGHT + dateGroupHeight;
+        currentHeight = dateGroupHeight;
       } else {
         currentPage.dateGroups.push(dateGroup);
         currentHeight += dateGroupHeight;
       }
     }
 
-    // Add the last page if it has content
-    if (currentPage.dateGroups.length > 0) {
-      pages.push(currentPage);
-    }
-
+    if (currentPage.dateGroups.length > 0) pages.push(currentPage);
     return pages;
   };
 
-  // Split data into pages
-  const dateGroups = detailedExpenses && detailedExpenses.length > 0 
-    ? groupExpensesByDate(detailedExpenses) 
-    : [];
-  const pages = splitIntoPages(dateGroups);
+  const dateGroups = detailedExpenses.length > 0 ? groupExpensesByDate(detailedExpenses) : [];
+  const pages = dateGroups.length > 0 ? splitIntoPages(dateGroups) : [{ dateGroups: [] }];
+  const totalPages = pages.length;
+
+  const headerSub = [categoryName, month].filter(Boolean).join(' · ');
 
   return (
     <Document>
-      {detailedExpenses && detailedExpenses.length > 0 ? (
-        // Multiple pages for detailed expenses
-        pages.map((page, pageIndex) => (
-          <Page key={pageIndex} size="A4" style={styles.page}>
-            {/* Header */}
-            <View style={styles.section}>
-              <Text style={styles.title}>รายงานสรุปค่าใช้จ่ายรายเดือน</Text>
-              <Text style={styles.subtitle}>สาขา: {branchName}</Text>
-              <Text style={styles.subtitle}>ประจำเดือน {formatDate(month)}</Text>
-              {pages.length > 1 && (
-                <Text style={styles.subtitle}>หน้า {pageIndex + 1} จาก {pages.length}</Text>
-              )}
+      {pages.map((page, pageIndex) => (
+        <Page key={pageIndex} size="A4" style={styles.page}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.branchName}>{branchName}</Text>
+            <Text style={styles.receiptTitle}>ใบแทนใบเสร็จรับเงิน</Text>
+            {headerSub ? <Text style={styles.headerSub}>{headerSub}</Text> : null}
+            {totalPages > 1 && (
+              <Text style={styles.pageNumber}>หน้า {pageIndex + 1} จาก {totalPages}</Text>
+            )}
+          </View>
+
+          {/* Table */}
+          <View style={styles.tableWrapper}>
+            {/* Table header row */}
+            <View style={styles.tableRow}>
+              <View style={[styles.headerCell, styles.colItem]}><Text>รายการ</Text></View>
+              <View style={[styles.headerCell, styles.colQty]}><Text>จำนวน</Text></View>
+              <View style={[styles.headerCell, styles.colUnit]}><Text>หน่วย</Text></View>
+              <View style={[styles.headerCell, styles.colPrice]}><Text>ราคา/หน่วย</Text></View>
+              <View style={[styles.headerCell, styles.colTotal]}><Text>ยอดรวม</Text></View>
             </View>
 
-            {/* Detailed Expense Breakdown */}
-            <View style={styles.section}>
-              <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
-                รายละเอียดค่าใช้จ่ายแยกตามวัน
-              </Text>
-              
-              {/* Detailed Table Header */}
-              <View style={styles.tableHeader}>
-                <View style={[styles.tableCell, styles.dateCell]}>
-                  <Text>วันที่</Text>
-                </View>
-                <View style={[styles.tableCell, styles.itemNameCell]}>
-                  <Text>รายการ</Text>
-                </View>
-                <View style={[styles.tableCell, styles.qtyCell]}>
-                  <Text>จำนวน</Text>
-                </View>
-                <View style={[styles.tableCell, styles.unitCell]}>
-                  <Text>หน่วย</Text>
-                </View>
-                <View style={[styles.tableCell, styles.priceCell]}>
-                  <Text>ราคา/หน่วย</Text>
-                </View>
-                <View style={[styles.tableCell, styles.totalCell]}>
-                  <Text>จำนวนเงิน</Text>
-                </View>
-              </View>
-              
-              {/* Group expenses by date for this page */}
-              {page.dateGroups.map((dateGroup, dateIndex) => (
-                <View key={dateIndex}>
-                  {/* Date Header */}
-                  <View style={styles.dateHeader}>
+            {/* Date groups */}
+            {page.dateGroups.map((dateGroup, di) => (
+              <View key={di}>
+                {/* Date spanning row */}
+                <View style={styles.tableRow}>
+                  <View style={styles.dateRow}>
                     <Text>{formatThaiDate(dateGroup.date)}</Text>
                   </View>
-                  
-                  {/* Expense items for this date */}
-                  {dateGroup.items.map((expense, itemIndex) => (
-                    <View key={expense.id} style={styles.tableRow}>
-                      <View style={[styles.tableCell, styles.dateCell]}>
-                        <Text></Text>
-                      </View>
-                      <View style={[styles.tableCell, styles.itemNameCell]}>
-                        <Text>{expense.item_name}</Text>
-                      </View>
-                      <View style={[styles.tableCell, styles.qtyCell]}>
-                        <Text>{expense.qty}</Text>
-                      </View>
-                      <View style={[styles.tableCell, styles.unitCell]}>
-                        <Text>{expense.unit}</Text>
-                      </View>
-                      <View style={[styles.tableCell, styles.priceCell]}>
-                        <Text>{formatCurrency(expense.price_per_unit)}</Text>
-                      </View>
-                      <View style={[styles.tableCell, styles.totalCell]}>
-                        <Text>{formatCurrency(expense.total_amount)}</Text>
-                      </View>
-                    </View>
-                  ))}
                 </View>
-              ))}
-              
-              {/* Grand Total - only on last page */}
-              {pageIndex === pages.length - 1 && (
-                <View style={[styles.tableRow, styles.summaryRow]}>
-                  <View style={[styles.tableCell, styles.dateCell]}>
-                    <Text>รวมทั้งหมด</Text>
-                  </View>
-                  <View style={[styles.tableCell, styles.itemNameCell]}>
-                    <Text></Text>
-                  </View>
-                  <View style={[styles.tableCell, styles.qtyCell]}>
-                    <Text></Text>
-                  </View>
-                  <View style={[styles.tableCell, styles.unitCell]}>
-                    <Text></Text>
-                  </View>
-                  <View style={[styles.tableCell, styles.priceCell]}>
-                    <Text></Text>
-                  </View>
-                  <View style={[styles.tableCell, styles.totalCell]}>
-                    <Text>{formatCurrency(totalExpenses)}</Text>
-                  </View>
-                </View>
-              )}
-            </View>
 
-            {/* Income Summary (if available) - only on last page */}
-            {totalIncome > 0 && pageIndex === pages.length - 1 && (
-              <View style={styles.section}>
-                <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
-                  สรุปรายรับ
-                </Text>
-                <View style={[styles.tableRow, styles.summaryRow]}>
-                  <View style={[styles.tableCell, styles.categoryName]}>
-                    <Text>รวมรายรับทั้งหมด</Text>
+                {/* Expense items */}
+                {dateGroup.items.map((expense) => (
+                  <View key={expense.id} style={styles.tableRow}>
+                    <View style={[styles.cell, styles.colItem]}><Text>{expense.item_name}</Text></View>
+                    <View style={[styles.cell, styles.colQty]}><Text>{expense.qty}</Text></View>
+                    <View style={[styles.cell, styles.colUnit]}><Text>{expense.unit}</Text></View>
+                    <View style={[styles.cell, styles.colPrice]}><Text>{fmt(expense.price_per_unit)}</Text></View>
+                    <View style={[styles.cell, styles.colTotal]}><Text>{fmt(expense.total_amount)}</Text></View>
                   </View>
-                  <View style={[styles.tableCell, styles.amountCell]}>
-                    <Text>{formatCurrency(totalIncome)}</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            {/* Footer */}
-            <Text style={styles.footer}>
-              รายงานนี้จัดทำเมื่อ {new Date().toLocaleDateString('th-TH')} | 
-              ระบบบัญชีรายรับ-รายจ่ายแยกสาขา
-            </Text>
-          </Page>
-        ))
-      ) : (
-        // Single page for summary view
-        <Page size="A4" style={styles.page}>
-          {/* Header */}
-          <View style={styles.section}>
-            <Text style={styles.title}>รายงานสรุปค่าใช้จ่ายรายเดือน</Text>
-            <Text style={styles.subtitle}>สาขา: {branchName}</Text>
-            <Text style={styles.subtitle}>ประจำเดือน {formatDate(month)}</Text>
-          </View>
-
-          {/* Fallback: Show simple summary if no detailed data */}
-          <View style={styles.section}>
-            <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
-              สรุปค่าใช้จ่ายแยกตามหมวดหมู่
-            </Text>
-            
-            {/* Table Header */}
-            <View style={styles.tableHeader}>
-              <View style={[styles.tableCell, styles.categoryName]}>
-                <Text>หมวดหมู่</Text>
-              </View>
-              <View style={[styles.tableCell, styles.amountCell]}>
-                <Text>จำนวนเงิน</Text>
-              </View>
-            </View>
-            
-            {/* Table Body */}
-            {reportItems.map((item, index) => (
-              <View key={index} style={styles.tableRow}>
-                <View style={[styles.tableCell, styles.categoryName]}>
-                  <Text>{item.name}</Text>
-                </View>
-                <View style={[styles.tableCell, styles.amountCell]}>
-                  <Text>{formatCurrency(item.total)}</Text>
-                </View>
+                ))}
               </View>
             ))}
-            
-            {/* Summary Row */}
-            <View style={[styles.tableRow, styles.summaryRow]}>
-              <View style={[styles.tableCell, styles.categoryName]}>
-                <Text>รวมค่าใช้จ่ายทั้งหมด</Text>
+
+            {/* Summary row — last page only */}
+            {pageIndex === totalPages - 1 && (
+              <View style={styles.tableRow}>
+                <View style={styles.summaryLabel}><Text>ยอดรวมทั้งหมด</Text></View>
+                <View style={styles.summaryAmount}><Text>{fmt(totalExpenses)}</Text></View>
               </View>
-              <View style={[styles.tableCell, styles.amountCell]}>
-                <Text>{formatCurrency(totalExpenses)}</Text>
-              </View>
-            </View>
+            )}
           </View>
 
-          {/* Income Summary (if available) */}
-          {totalIncome > 0 && (
-            <View style={styles.section}>
-              <Text style={{ fontFamily: 'Sarabun-Bold', marginBottom: 10 }}>
-                สรุปรายรับ
-              </Text>
-              <View style={[styles.tableRow, styles.summaryRow]}>
-                <View style={[styles.tableCell, styles.categoryName]}>
-                  <Text>รวมรายรับทั้งหมด</Text>
+          {/* Signature section — last page only */}
+          {pageIndex === totalPages - 1 && (
+            <View style={styles.signatureRow}>
+              {['ผู้จัดทำ', 'ผู้อนุมัติ'].map((label) => (
+                <View key={label} style={styles.signatureBlock}>
+                  <Text style={styles.signatureSpace}> </Text>
+                  <Text style={styles.signatureLabel}>{label}</Text>
                 </View>
-                <View style={[styles.tableCell, styles.amountCell]}>
-                  <Text>{formatCurrency(totalIncome)}</Text>
-                </View>
-              </View>
+              ))}
             </View>
           )}
-
-          {/* Footer */}
-          <Text style={styles.footer}>
-            รายงานนี้จัดทำเมื่อ {new Date().toLocaleDateString('th-TH')} | 
-            ระบบบัญชีรายรับ-รายจ่ายแยกสาขา
-          </Text>
         </Page>
-      )}
+      ))}
     </Document>
   );
 };
