@@ -243,11 +243,11 @@ export const ExpenseReportPDF: React.FC<ExpenseReportPDFProps> = ({
           <View style={styles.tableWrapper}>
             {/* Table header row */}
             <View style={styles.tableRow}>
-              <View style={[styles.headerCell, styles.colItem]}><Text>รายการ</Text></View>
-              <View style={[styles.headerCell, styles.colQty]}><Text>จำนวน</Text></View>
-              <View style={[styles.headerCell, styles.colUnit]}><Text>หน่วย</Text></View>
-              <View style={[styles.headerCell, styles.colPrice]}><Text>ราคา/หน่วย</Text></View>
-              <View style={[styles.headerCell, styles.colTotal]}><Text>ยอดรวม</Text></View>
+              <View style={[styles.headerCell, styles.colItem]}><Text>{"\u200B"}รายการ</Text></View>
+              <View style={[styles.headerCell, styles.colQty]}><Text>{"\u200B"}จํานวน</Text></View>
+              <View style={[styles.headerCell, styles.colUnit]}><Text>{"\u200B"}หน่วย</Text></View>
+              <View style={[styles.headerCell, styles.colPrice]}><Text>{"\u200B"}ราคา/หน่วย</Text></View>
+              <View style={[styles.headerCell, styles.colTotal]}><Text>{"\u200B"}ยอดรวม</Text></View>
             </View>
 
             {/* Date groups */}
@@ -263,7 +263,7 @@ export const ExpenseReportPDF: React.FC<ExpenseReportPDFProps> = ({
                 {/* Expense items */}
                 {dateGroup.items.map((expense) => (
                   <View key={expense.id} style={styles.tableRow}>
-                    <View style={[styles.cell, styles.colItem]}><Text>{expense.item_name}</Text></View>
+                    <View style={[styles.cell, styles.colItem]}><Text>{"\u200B"}{expense.item_name}</Text></View>
                     <View style={[styles.cell, styles.colQty]}><Text>{expense.qty}</Text></View>
                     <View style={[styles.cell, styles.colUnit]}><Text>{expense.unit}</Text></View>
                     <View style={[styles.cell, styles.colPrice]}><Text>{fmt(expense.price_per_unit)}</Text></View>
@@ -285,7 +285,7 @@ export const ExpenseReportPDF: React.FC<ExpenseReportPDFProps> = ({
           {/* Signature section — last page only */}
           {pageIndex === totalPages - 1 && (
             <View style={styles.signatureRow}>
-              {['ผู้จัดทำ', 'ผู้อนุมัติ'].map((label) => (
+              {['ผู้จัดทํา', 'ผู้อนุมัติ'].map((label) => (
                 <View key={label} style={styles.signatureBlock}>
                   <Text style={styles.signatureSpace}> </Text>
                   <Text style={styles.signatureLabel}>{label}</Text>
